@@ -23,6 +23,10 @@ const Room = require('./lib/Room');
 const interactiveServer = require('./lib/interactiveServer');
 const interactiveClient = require('./lib/interactiveClient');
 
+const mongoose = require("mongoose");
+
+const db = config.database.mongodb_uri;
+
 const logger = new Logger();
 
 // Async queue to manage rooms.
@@ -75,6 +79,9 @@ async function run()
 
 	// Run a protoo WebSocketServer.
 	await runProtooWebSocketServer();
+
+	//start database connection
+	await connectDB();
 
 	// Log rooms status every X seconds.
 	setInterval(() =>
@@ -355,6 +362,19 @@ async function createExpressApp()
 				next();
 			}
 		});
+}
+
+async function connectDB()
+{
+	// Connect to MongoDB
+	logger.info("Connecting to the database");
+	mongoose
+  .connect(
+    db,
+    { useNewUrlParser: true }
+  )
+  .then(() => logger.info("MongoDB successfully connected"))
+  .catch(err => logger.error(err));
 }
 
 /**
