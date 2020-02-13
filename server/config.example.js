@@ -142,5 +142,9 @@ module.exports =
 			},
 			maxSctpMessageSize : 262144
 		}
-	}
+	},
+  database :
+  {
+    mongodb_uri : process.env.MONGODB_URI || "MONGODB_URI"
+  }
 };
