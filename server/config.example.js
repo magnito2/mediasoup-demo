@@ -145,6 +145,7 @@ module.exports =
 	},
   database :
   {
-    mongodb_uri : process.env.MONGODB_URI || "MONGODB_URI"
+    mongodb_uri : process.env.MONGODB_URI || "mongodb://localhost/mediasoup",
+    secret : process.env.SECRET_KEY || "pleaseDoSetUpSomeReallySecretKey"
   }
 };
