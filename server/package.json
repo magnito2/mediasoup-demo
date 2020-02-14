@@ -9,24 +9,34 @@
   "scripts": {
     "lint": "eslint -c .eslintrc.js server.js lib connect.js",
     "start": "DEBUG=${DEBUG:='*mediasoup* *INFO* *WARN* *ERROR*'} INTERACTIVE=${INTERACTIVE:='true'} node server.js",
-    "connect": "node connect.js"
+    "connect": "node connect.js",
+    "test": "nodemon --exec 'mocha -R min'"
   },
   "dependencies": {
     "@sitespeed.io/throttle": "^0.5.4",
     "awaitqueue": "^2.0.0",
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "colors": "^1.4.0",
+    "concurrently": "^5.1.0",
     "debug": "^4.1.1",
     "express": "^4.17.1",
+    "is-empty": "^1.2.0",
+    "jsonwebtoken": "^8.5.1",
     "mediasoup": "github:versatica/mediasoup#v3",
+    "mongoose": "^5.8.12",
+    "passport": "^0.4.1",
+    "passport-jwt": "^4.0.0",
     "pidusage": "^2.0.17",
     "protoo-server": "^4.0.3",
-    "sctp": "^0.0.19"
+    "sctp": "^0.0.19",
+    "validator": "^12.2.0"
   },
   "devDependencies": {
     "eslint": "^6.7.2",
     "gulp": "^4.0.2",
     "gulp-eslint": "^6.0.0",
-    "gulp-plumber": "^1.2.1"
+    "gulp-plumber": "^1.2.1",
+    "nodemon": "^2.0.2"
   }
 }
