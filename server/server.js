@@ -314,7 +314,7 @@ async function createExpressApp() {
   // Passport middleware
   expressApp.use(passport.initialize());
   // Passport config
-  require("./config/passport")(passport);
+  require("./middleware/passport")(passport);
   // Routes
   expressApp.use("/api/users", users);
 
