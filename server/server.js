@@ -143,6 +143,13 @@ async function createExpressApp() {
 
   expressApp.use(bodyParser.json());
 
+  // Bodyparser middleware
+  expressApp.use(
+    bodyParser.urlencoded({
+      extended: false
+    })
+  );
+
   /**
    * For every API request, verify that the roomId in the path matches and
    * existing room.
