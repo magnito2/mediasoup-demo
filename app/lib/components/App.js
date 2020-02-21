@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Route } from 'react-router-dom';
 import Login from './auth/Login';
 import Register from './auth/Register';
 import Room from './Room';
+import Landing from './Landing';
 
 const App = () => {
   return (
@@ -14,5 +15,7 @@ const App = () => {
         <Route exact path="/login" component={Login} />
       </div>
     </Router>
-  )
+  );
 }
+
+export default App;
