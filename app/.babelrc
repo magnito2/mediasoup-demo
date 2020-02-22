@@ -3,7 +3,10 @@
 	[
 		"@babel/plugin-transform-runtime",
 		"@babel/plugin-proposal-object-rest-spread",
-		"jsx-control-statements"
+		"jsx-control-statements",
+		["@babel/plugin-proposal-class-properties", {
+        "loose": true
+      }]
 	],
 	"presets":
 	[
