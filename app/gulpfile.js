@@ -93,7 +93,7 @@ function bundle(options)
 			// required to be true only for watchify.
 			fullPaths    : watch
 		})
-		.transform('babelify')
+		.transform('babelify', { plugins: [ '@babel/plugin-transform-arrow-functions' ] })
 		.transform(envify(
 			{
 				NODE_ENV : process.env.NODE_ENV,
@@ -260,7 +260,8 @@ gulp.task('live', gulp.series(
 				},
 				https     : config.https.tls,
 				ghostMode : false,
-				files     : path.join(OUTPUT_DIR, '**', '*')
+				files     : path.join(OUTPUT_DIR, '**', '*'),
+				single    : true
 			});
 
 		done();
