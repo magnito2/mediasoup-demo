@@ -21,6 +21,7 @@ import * as cookiesManager from './cookiesManager';
 import * as stateActions from './redux/stateActions';
 import reducers from './redux/reducers';
 import Room from './components/Room';
+import App from './components/App';
 
 const logger = new Logger();
 const reduxMiddlewares = [ thunk ];
@@ -64,7 +65,9 @@ async function run()
 
 	const urlParser = new UrlParse(window.location.href, true);
 	const peerId = randomString({ length: 8 }).toLowerCase();
+
 	let roomId = urlParser.query.roomId;
+
 	let displayName =
 		urlParser.query.displayName || (cookiesManager.getUser() || {}).displayName;
 	const handler = urlParser.query.handler;
@@ -189,7 +192,7 @@ async function run()
 	render(
 		<Provider store={store}>
 			<RoomContext.Provider value={roomClient}>
-				<Room />
+				<App/>
 			</RoomContext.Provider>
 		</Provider>,
 		document.getElementById('mediasoup-demo-app-container')
