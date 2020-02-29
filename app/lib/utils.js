@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 let mediaQueryDetectorElem;
 
 export function initialize()
@@ -17,4 +19,18 @@ export function isDesktop()
 export function isMobile()
 {
 	return !mediaQueryDetectorElem.offsetParent;
+}
+
+export function setAuthToken(token)
+{
+	if (token)
+	{
+		// Apply authorization token to every request if logged in
+		axios.defaults.headers.common['Authorization'] = token;
+	}
+	else
+	{
+		// Delete auth header
+		delete axios.defaults.headers.common['Authorization'];
+	}
 }
