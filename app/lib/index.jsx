@@ -3,11 +3,7 @@ import UrlParse from 'url-parse';
 import React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux';
-import {
-	applyMiddleware as applyReduxMiddleware,
-	createStore as createReduxStore
-} from 'redux';
-import thunk from 'redux-thunk';
+
 // import { createLogger as createReduxLogger } from 'redux-logger';
 import randomString from 'random-string';
 import * as faceapi from 'face-api.js';
@@ -19,12 +15,11 @@ import RoomClient from './RoomClient';
 import RoomContext from './RoomContext';
 import * as cookiesManager from './cookiesManager';
 import * as stateActions from './redux/stateActions';
-import reducers from './redux/reducers';
-import Room from './components/Room';
+// import reducers from './redux/reducers';
 import App from './components/App';
 
 const logger = new Logger();
-const reduxMiddlewares = [ thunk ];
+// const reduxMiddlewares = [ thunk ];
 
 // if (process.env.NODE_ENV === 'development')
 // {
@@ -40,11 +35,16 @@ const reduxMiddlewares = [ thunk ];
 // }
 
 let roomClient;
-const store = createReduxStore(
+
+/* export const store = createReduxStore(
 	reducers,
 	undefined,
-	applyReduxMiddleware(...reduxMiddlewares)
-);
+	reduxCompose(applyReduxMiddleware(...reduxMiddlewares),
+		window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+	)
+);*/
+
+import store from './redux/store';
 
 window.STORE = store;
 
