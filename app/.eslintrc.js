@@ -26,6 +26,7 @@ module.exports =
 			version: '16'
 		}
 	},
+	parser: "babel-eslint",
 	parserOptions:
 	{
 		ecmaVersion: 2018,

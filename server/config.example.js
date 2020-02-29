@@ -142,5 +142,10 @@ module.exports =
 			},
 			maxSctpMessageSize : 262144
 		}
-	}
+	},
+  database :
+  {
+    mongodb_uri : process.env.MONGODB_URI || "mongodb://localhost/mediasoup",
+    secretOrKey : process.env.SECRET_KEY || "pleaseDoSetUpSomeReallySecretKey"
+  }
 };

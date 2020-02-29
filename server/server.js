@@ -23,6 +23,13 @@ const Room = require('./lib/Room');
 const interactiveServer = require('./lib/interactiveServer');
 const interactiveClient = require('./lib/interactiveClient');
 
+const passport = require('passport');
+const users = require('./routes/api/users');
+
+const mongoose = require('mongoose');
+
+const db = config.database.mongodb_uri;
+
 const logger = new Logger();
 
 // Async queue to manage rooms.
@@ -76,6 +83,9 @@ async function run()
 	// Run a protoo WebSocketServer.
 	await runProtooWebSocketServer();
 
+	// start database connection
+	await connectDB();
+
 	// Log rooms status every X seconds.
 	setInterval(() =>
 	{
@@ -97,18 +107,19 @@ async function runMediasoupWorkers()
 
 	for (let i = 0; i < numWorkers; ++i)
 	{
-		const worker = await mediasoup.createWorker(
-			{
-				logLevel   : config.mediasoup.workerSettings.logLevel,
-				logTags    : config.mediasoup.workerSettings.logTags,
-				rtcMinPort : Number(config.mediasoup.workerSettings.rtcMinPort),
-				rtcMaxPort : Number(config.mediasoup.workerSettings.rtcMaxPort)
-			});
+		const worker = await mediasoup.createWorker({
+			logLevel   : config.mediasoup.workerSettings.logLevel,
+			logTags    : config.mediasoup.workerSettings.logTags,
+			rtcMinPort : Number(config.mediasoup.workerSettings.rtcMinPort),
+			rtcMaxPort : Number(config.mediasoup.workerSettings.rtcMaxPort)
+		});
 
 		worker.on('died', () =>
 		{
 			logger.error(
-				'mediasoup Worker died, exiting  in 2 seconds... [pid:%d]', worker.pid);
+				'mediasoup Worker died, exiting  in 2 seconds... [pid:%d]',
+				worker.pid
+			);
 
 			setTimeout(() => process.exit(1), 2000);
 		});
@@ -120,7 +131,11 @@ async function runMediasoupWorkers()
 		{
 			const usage = await worker.getResourceUsage();
 
-			logger.info('mediasoup Worker resource usage [pid:%d]: %o', worker.pid, usage);
+			logger.info(
+				'mediasoup Worker resource usage [pid:%d]: %o',
+				worker.pid,
+				usage
+			);
 		}, 120000);
 	}
 }
@@ -136,89 +151,89 @@ async function createExpressApp()
 
 	expressApp.use(bodyParser.json());
 
-	/**
-	 * For every API request, verify that the roomId in the path matches and
-	 * existing room.
-	 */
-	expressApp.param(
-		'roomId', (req, res, next, roomId) =>
-		{
-			// The room must exist for all API requests.
-			if (!rooms.has(roomId))
-			{
-				const error = new Error(`room with id "${roomId}" not found`);
-
-				error.status = 404;
-				throw error;
-			}
-
-			req.room = rooms.get(roomId);
-
-			next();
-		});
+	// Bodyparser middleware
+	expressApp.use(
+		bodyParser.urlencoded({
+			extended : false
+		})
+	);
 
 	/**
-	 * API GET resource that returns the mediasoup Router RTP capabilities of
-	 * the room.
-	 */
-	expressApp.get(
-		'/rooms/:roomId', (req, res) =>
+   * For every API request, verify that the roomId in the path matches and
+   * existing room.
+   */
+	expressApp.param('roomId', (req, res, next, roomId) =>
+	{
+		// The room must exist for all API requests.
+		if (!rooms.has(roomId))
 		{
-			const data = req.room.getRouterRtpCapabilities();
+			const error = new Error(`room with id "${roomId}" not found`);
 
-			res.status(200).json(data);
-		});
+			error.status = 404;
+			throw error;
+		}
+
+		req.room = rooms.get(roomId);
+
+		next();
+	});
 
 	/**
-	 * POST API to create a Broadcaster.
-	 */
-	expressApp.post(
-		'/rooms/:roomId/broadcasters', async (req, res, next) =>
+   * API GET resource that returns the mediasoup Router RTP capabilities of
+   * the room.
+   */
+	expressApp.get('/rooms/:roomId', (req, res) =>
+	{
+		const data = req.room.getRouterRtpCapabilities();
+
+		res.status(200).json(data);
+	});
+
+	/**
+   * POST API to create a Broadcaster.
+   */
+	expressApp.post('/rooms/:roomId/broadcasters', async (req, res, next) =>
+	{
+		const { id, displayName, device, rtpCapabilities } = req.body;
+
+		try
 		{
-			const {
+			const data = await req.room.createBroadcaster({
 				id,
 				displayName,
 				device,
 				rtpCapabilities
-			} = req.body;
+			});
 
-			try
-			{
-				const data = await req.room.createBroadcaster(
-					{
-						id,
-						displayName,
-						device,
-						rtpCapabilities
-					});
-
-				res.status(200).json(data);
-			}
-			catch (error)
-			{
-				next(error);
-			}
-		});
+			res.status(200).json(data);
+		}
+		catch (error)
+		{
+			next(error);
+		}
+	});
 
 	/**
-	 * DELETE API to delete a Broadcaster.
-	 */
+   * DELETE API to delete a Broadcaster.
+   */
 	expressApp.delete(
-		'/rooms/:roomId/broadcasters/:broadcasterId', (req, res) =>
+		'/rooms/:roomId/broadcasters/:broadcasterId',
+		(req, res) =>
 		{
 			const { broadcasterId } = req.params;
 
 			req.room.deleteBroadcaster({ broadcasterId });
 
 			res.status(200).send('broadcaster deleted');
-		});
+		}
+	);
 
 	/**
-	 * POST API to create a mediasoup Transport associated to a Broadcaster.
-	 * It can be a PLainRtpTransport or a WebRtcTransport depending on the
-	 * type parameters in the body. There are also additional parameters for
-	 * PLainRtpTransport.
-	 */
+   * POST API to create a mediasoup Transport associated to a Broadcaster.
+   * It can be a PLainRtpTransport or a WebRtcTransport depending on the
+   * type parameters in the body. There are also additional parameters for
+   * PLainRtpTransport.
+   */
 	expressApp.post(
 		'/rooms/:roomId/broadcasters/:broadcasterId/transports',
 		async (req, res, next) =>
@@ -228,14 +243,13 @@ async function createExpressApp()
 
 			try
 			{
-				const data = await req.room.createBroadcasterTransport(
-					{
-						broadcasterId,
-						type,
-						rtcpMux,
-						comedia,
-						multiSource
-					});
+				const data = await req.room.createBroadcasterTransport({
+					broadcasterId,
+					type,
+					rtcpMux,
+					comedia,
+					multiSource
+				});
 
 				res.status(200).json(data);
 			}
@@ -243,13 +257,14 @@ async function createExpressApp()
 			{
 				next(error);
 			}
-		});
+		}
+	);
 
 	/**
-	 * POST API to connect a Transport belonging to a Broadcaster. Not needed
-	 * for PlainRtpTransport if it was created with comedia or multiSource options
-	 * set to true.
-	 */
+   * POST API to connect a Transport belonging to a Broadcaster. Not needed
+   * for PlainRtpTransport if it was created with comedia or multiSource options
+   * set to true.
+   */
 	expressApp.post(
 		'/rooms/:roomId/broadcasters/:broadcasterId/transports/:transportId/connect',
 		async (req, res, next) =>
@@ -259,12 +274,11 @@ async function createExpressApp()
 
 			try
 			{
-				const data = await req.room.connectBroadcasterTransport(
-					{
-						broadcasterId,
-						transportId,
-						dtlsParameters
-					});
+				const data = await req.room.connectBroadcasterTransport({
+					broadcasterId,
+					transportId,
+					dtlsParameters
+				});
 
 				res.status(200).json(data);
 			}
@@ -272,14 +286,15 @@ async function createExpressApp()
 			{
 				next(error);
 			}
-		});
+		}
+	);
 
 	/**
-	 * POST API to create a mediasoup Producer associated to a Broadcaster.
-	 * The exact Transport in which the Producer must be created is signaled in
-	 * the URL path. Body parameters include kind and rtpParameters of the
-	 * Producer.
-	 */
+   * POST API to create a mediasoup Producer associated to a Broadcaster.
+   * The exact Transport in which the Producer must be created is signaled in
+   * the URL path. Body parameters include kind and rtpParameters of the
+   * Producer.
+   */
 	expressApp.post(
 		'/rooms/:roomId/broadcasters/:broadcasterId/transports/:transportId/producers',
 		async (req, res, next) =>
@@ -289,13 +304,12 @@ async function createExpressApp()
 
 			try
 			{
-				const data = await req.room.createBroadcasterProducer(
-					{
-						broadcasterId,
-						transportId,
-						kind,
-						rtpParameters
-					});
+				const data = await req.room.createBroadcasterProducer({
+					broadcasterId,
+					transportId,
+					kind,
+					rtpParameters
+				});
 
 				res.status(200).json(data);
 			}
@@ -303,14 +317,15 @@ async function createExpressApp()
 			{
 				next(error);
 			}
-		});
+		}
+	);
 
 	/**
-	 * POST API to create a mediasoup Consumer associated to a Broadcaster.
-	 * The exact Transport in which the Consumer must be created is signaled in
-	 * the URL path. Query parameters must include the desired producerId to
-	 * consume.
-	 */
+   * POST API to create a mediasoup Consumer associated to a Broadcaster.
+   * The exact Transport in which the Consumer must be created is signaled in
+   * the URL path. Query parameters must include the desired producerId to
+   * consume.
+   */
 	expressApp.post(
 		'/rooms/:roomId/broadcasters/:broadcasterId/transports/:transportId/consume',
 		async (req, res, next) =>
@@ -320,12 +335,11 @@ async function createExpressApp()
 
 			try
 			{
-				const data = await req.room.createBroadcasterConsumer(
-					{
-						broadcasterId,
-						transportId,
-						producerId
-					});
+				const data = await req.room.createBroadcasterConsumer({
+					broadcasterId,
+					transportId,
+					producerId
+				});
 
 				res.status(200).json(data);
 			}
@@ -333,28 +347,45 @@ async function createExpressApp()
 			{
 				next(error);
 			}
-		});
+		}
+	);
+
+	// Passport middleware
+	// expressApp.use(passport.initialize());
+	// Passport config
+	// require('./middleware/passport')(passport);
+	// Routes
+	expressApp.use('/api/users', users);
 
 	/**
-	 * Error handler.
-	 */
-	expressApp.use(
-		(error, req, res, next) =>
+   * Error handler.
+   */
+	expressApp.use((error, req, res, next) =>
+	{
+		if (error)
 		{
-			if (error)
-			{
-				logger.warn('Express app %s', String(error));
+			logger.warn('Express app %s', String(error));
 
-				error.status = error.status || (error.name === 'TypeError' ? 400 : 500);
+			error.status = error.status || (error.name === 'TypeError' ? 400 : 500);
 
-				res.statusMessage = error.message;
-				res.status(error.status).send(String(error));
-			}
-			else
-			{
-				next();
-			}
-		});
+			res.statusMessage = error.message;
+			res.status(error.status).send(String(error));
+		}
+		else
+		{
+			next();
+		}
+	});
+}
+
+async function connectDB()
+{
+	// Connect to MongoDB
+	logger.info('Connecting to the database');
+	mongoose
+		.connect(db, { useNewUrlParser: true })
+		.then(() => logger.info('MongoDB successfully connected'))
+		.catch((err) => logger.error(err));
 }
 
 /**
@@ -366,8 +397,7 @@ async function runHttpsServer()
 	logger.info('running an HTTPS server...');
 
 	// HTTPS server for the protoo WebSocket server.
-	const tls =
-	{
+	const tls = {
 		cert : fs.readFileSync(config.https.tls.cert),
 		key  : fs.readFileSync(config.https.tls.key)
 	};
@@ -377,7 +407,10 @@ async function runHttpsServer()
 	await new Promise((resolve) =>
 	{
 		httpsServer.listen(
-			Number(config.https.listenPort), config.https.listenIp, resolve);
+			Number(config.https.listenPort),
+			config.https.listenIp,
+			resolve
+		);
 	});
 }
 
@@ -389,17 +422,17 @@ async function runProtooWebSocketServer()
 	logger.info('running protoo WebSocketServer...');
 
 	// Create the protoo WebSocket server.
-	protooWebSocketServer = new protoo.WebSocketServer(httpsServer,
-		{
-			maxReceivedFrameSize     : 960000, // 960 KBytes.
-			maxReceivedMessageSize   : 960000,
-			fragmentOutgoingMessages : true,
-			fragmentationThreshold   : 960000
-		});
+	protooWebSocketServer = new protoo.WebSocketServer(httpsServer, {
+		maxReceivedFrameSize     : 960000, // 960 KBytes.
+		maxReceivedMessageSize   : 960000,
+		fragmentOutgoingMessages : true,
+		fragmentationThreshold   : 960000
+	});
 
 	// Handle connections from clients.
 	protooWebSocketServer.on('connectionrequest', (info, accept, reject) =>
 	{
+		logger.info('Yeeey, we are here');
 		// The client indicates the roomId and peerId in the URL query.
 		const u = url.parse(info.request.url, true);
 		const roomId = u.query['roomId'];
@@ -416,20 +449,25 @@ async function runProtooWebSocketServer()
 
 		logger.info(
 			'protoo connection request [roomId:%s, peerId:%s, address:%s, origin:%s]',
-			roomId, peerId, info.socket.remoteAddress, info.origin);
+			roomId,
+			peerId,
+			info.socket.remoteAddress,
+			info.origin
+		);
 
 		// Serialize this code into the queue to avoid that two peers connecting at
 		// the same time with the same roomId create two separate rooms with same
 		// roomId.
-		queue.push(async () =>
-		{
-			const room = await getOrCreateRoom({ roomId, forceH264, forceVP9 });
+		queue
+			.push(async () =>
+			{
+				const room = await getOrCreateRoom({ roomId, forceH264, forceVP9 });
 
-			// Accept the protoo WebSocket connection.
-			const protooWebSocketTransport = accept();
+				// Accept the protoo WebSocket connection.
+				const protooWebSocketTransport = accept();
 
-			room.handleProtooConnection({ peerId, protooWebSocketTransport });
-		})
+				room.handleProtooConnection({ peerId, protooWebSocketTransport });
+			})
 			.catch((error) =>
 			{
 				logger.error('room creation or room joining failed:%o', error);
@@ -455,7 +493,11 @@ function getMediasoupWorker()
 /**
  * Get a Room instance (or create one if it does not exist).
  */
-async function getOrCreateRoom({ roomId, forceH264 = false, forceVP9 = false })
+async function getOrCreateRoom({
+	roomId,
+	forceH264 = false,
+	forceVP9 = false
+})
 {
 	let room = rooms.get(roomId);
 

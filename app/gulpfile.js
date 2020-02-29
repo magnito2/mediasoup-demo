@@ -55,6 +55,8 @@ const cssBase64 = require('gulp-css-base64');
 const nib = require('nib');
 const browserSync = require('browser-sync');
 
+const { createProxyMiddleware } = require('http-proxy-middleware');
+
 const PKG = require('./package.json');
 const BANNER = fs.readFileSync('banner.txt').toString();
 const BANNER_OPTIONS =
@@ -93,7 +95,7 @@ function bundle(options)
 			// required to be true only for watchify.
 			fullPaths    : watch
 		})
-		.transform('babelify')
+		.transform('babelify', { plugins: [ '@babel/plugin-transform-arrow-functions' ] })
 		.transform(envify(
 			{
 				NODE_ENV : process.env.NODE_ENV,
@@ -249,6 +251,8 @@ gulp.task('live', gulp.series(
 	{
 		const config = require('../server/config');
 
+		const apiProxy = createProxyMiddleware('/api', { target: `https://${config.domain}:4443`, secure: false });
+
 		browserSync(
 			{
 				open      : 'external',
@@ -256,11 +260,13 @@ gulp.task('live', gulp.series(
 				startPath : '/?info=true',
 				server    :
 				{
-					baseDir : OUTPUT_DIR
+					baseDir    : OUTPUT_DIR,
+					middleware : [ apiProxy ]
 				},
 				https     : config.https.tls,
 				ghostMode : false,
-				files     : path.join(OUTPUT_DIR, '**', '*')
+				files     : path.join(OUTPUT_DIR, '**', '*'),
+				single    : true
 			});
 
 		done();

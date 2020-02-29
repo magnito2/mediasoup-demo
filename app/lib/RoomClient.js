@@ -928,6 +928,7 @@ export default class RoomClient
 		}
 
 		let track;
+
 		let device;
 
 		store.dispatch(
@@ -1087,6 +1088,7 @@ export default class RoomClient
 			const len = array.length;
 			const deviceId =
 				this._webcam.device ? this._webcam.device.deviceId : undefined;
+
 			let idx = array.indexOf(deviceId);
 
 			if (idx < len - 1)
