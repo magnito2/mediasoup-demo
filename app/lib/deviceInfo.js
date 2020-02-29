@@ -7,6 +7,7 @@ export default function()
 {
 	const ua = navigator.userAgent;
 	const browser = bowser.getParser(ua);
+
 	let flag;
 
 	if (browser.satisfies({ chrome: '>=0', chromium: '>=0' }))
