@@ -7,6 +7,7 @@ import peers from './peers';
 import consumers from './consumers';
 import dataConsumers from './dataConsumers';
 import notifications from './notifications';
+import authReducer from './authReducer';
 
 const reducers = combineReducers(
 	{
@@ -17,7 +18,8 @@ const reducers = combineReducers(
 		peers,
 		consumers,
 		dataConsumers,
-		notifications
+		notifications,
+		auth : authReducer
 	});
 
 export default reducers;
