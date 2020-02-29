@@ -35,6 +35,7 @@ const consumers = (state = initialState, action) =>
 		{
 			const { consumerId, originator } = action.payload;
 			const consumer = state[consumerId];
+
 			let newConsumer;
 
 			if (originator === 'local')
@@ -49,6 +50,7 @@ const consumers = (state = initialState, action) =>
 		{
 			const { consumerId, originator } = action.payload;
 			const consumer = state[consumerId];
+
 			let newConsumer;
 
 			if (originator === 'local')
