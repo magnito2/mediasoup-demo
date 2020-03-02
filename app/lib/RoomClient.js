@@ -320,6 +320,23 @@ export default class RoomClient
 						producerPaused
 					} = request.data;
 
+					// allow only admin to consume everyone else, all other peers can only consume admin
+					const { masterPeerId } = store.getState().room;
+					const { me } = store.getState();
+
+					if (masterPeerId && masterPeerId !== peerId)
+					{
+						// the peer is not an admin, check if I am not admin, bail out
+						if (me.id !== masterPeerId)
+						{
+							logger.debug(
+								'I cannot consume from peer:%s as I am not admin, adminId :%s, myId : %s',
+								peerId, masterPeerId, me.id);
+
+							return;
+						}
+					}
+
 					let codecOptions;
 
 					if (kind === 'audio')
@@ -2181,7 +2198,7 @@ export default class RoomClient
 				});
 			}
 
-			// Create mediasoup Transport for sending (unless we don't want to consume).
+			// Create mediasoup Transport for receiving (unless we don't want to consume).
 			if (this._consume)
 			{
 				const transportInfo = await this._protoo.request(
@@ -2228,7 +2245,7 @@ export default class RoomClient
 
 			// Join now into the room.
 			// NOTE: Don't send our RTP capabilities if we don't want to consume.
-			const { peers } = await this._protoo.request(
+			const { peers, masterPeerId } = await this._protoo.request(
 				'join',
 				{
 					displayName     : this._displayName,
@@ -2243,6 +2260,10 @@ export default class RoomClient
 
 			store.dispatch(
 				stateActions.setRoomState('connected'));
+
+			// set the masterPeerId for the room
+			store.dispatch(
+				stateActions.setRoomMasterPeerId({ peerId: masterPeerId }));
 
 			// Clean all the existing notifcations.
 			store.dispatch(
