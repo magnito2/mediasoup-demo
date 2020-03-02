@@ -148,6 +148,12 @@ async function run()
 	{
 		displayNameSet = true;
 	}
+	// Otherwise check if user is logged in with a username
+	else if (store.getState().auth && store.getState().auth.user)
+	{
+		displayNameSet = false;
+		displayName = store.getState().auth.user.name;
+	}
 	// Otherwise pick a random name and mark as "not set".
 	else
 	{
