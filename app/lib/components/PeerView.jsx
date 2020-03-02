@@ -279,6 +279,7 @@ export default class PeerView extends React.Component
 											event.stopPropagation();
 
 											let newPreferredSpatialLayer = consumerPreferredSpatialLayer;
+
 											let newPreferredTemporalLayer;
 
 											if (consumerPreferredTemporalLayer > 0)
@@ -309,6 +310,7 @@ export default class PeerView extends React.Component
 											event.stopPropagation();
 
 											let newPreferredSpatialLayer = consumerPreferredSpatialLayer;
+
 											let newPreferredTemporalLayer;
 
 											if (consumerPreferredTemporalLayer < consumerTemporalLayers - 1)
