@@ -38,6 +38,14 @@ export const setRoomFaceDetection = (flag) =>
 	};
 };
 
+export const setRoomMasterPeerId = (peerId) =>
+{
+	return {
+		type    : 'SET_MASTER_PEER_ID',
+		payload : peerId
+	};
+};
+
 export const setMe = ({ peerId, displayName, displayNameSet, device }) =>
 {
 	return {
