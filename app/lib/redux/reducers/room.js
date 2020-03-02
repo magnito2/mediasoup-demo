@@ -4,7 +4,8 @@ const initialState =
 	state           : 'new', // new/connecting/connected/disconnected/closed,
 	activeSpeakerId : null,
 	statsPeerId     : null,
-	faceDetection   : false
+	faceDetection   : false,
+	masterPeerId   	: null
 };
 
 const room = (state = initialState, action) =>
@@ -64,6 +65,13 @@ const room = (state = initialState, action) =>
 				newState.statsPeerId = null;
 
 			return newState;
+		}
+
+		case 'SET_MASTER_PEER_ID':
+		{
+			const { peerId } = action.payload;
+
+			return { ...state, masterPeerId: peerId };
 		}
 
 		default:
