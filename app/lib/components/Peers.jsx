@@ -38,7 +38,16 @@ Peers.propTypes =
 
 const mapStateToProps = (state) =>
 {
-	const peersArray = Object.values(state.peers);
+	let peersArray = Object.values(state.peers);
+
+	// let us check if we are master, if not, have only master
+	if (state.me.id !== state.room.masterPeerId)
+	{
+		peersArray = peersArray.filter((peer) =>
+		{
+			return peer.id === state.room.masterPeerId;
+		});
+	}
 
 	return {
 		peers           : peersArray,
