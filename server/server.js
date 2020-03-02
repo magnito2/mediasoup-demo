@@ -432,7 +432,7 @@ async function runProtooWebSocketServer()
 	// Handle connections from clients.
 	protooWebSocketServer.on('connectionrequest', (info, accept, reject) =>
 	{
-		logger.info('Yeeey, we are here');
+
 		// The client indicates the roomId and peerId in the URL query.
 		const u = url.parse(info.request.url, true);
 		const roomId = u.query['roomId'];
@@ -461,7 +461,7 @@ async function runProtooWebSocketServer()
 		queue
 			.push(async () =>
 			{
-				const room = await getOrCreateRoom({ roomId, forceH264, forceVP9 });
+				const room = await getOrCreateRoom({ roomId, forceH264, forceVP9, peerId });
 
 				// Accept the protoo WebSocket connection.
 				const protooWebSocketTransport = accept();
@@ -496,7 +496,8 @@ function getMediasoupWorker()
 async function getOrCreateRoom({
 	roomId,
 	forceH264 = false,
-	forceVP9 = false
+	forceVP9 = false,
+	peerId
 })
 {
 	let room = rooms.get(roomId);
@@ -508,7 +509,13 @@ async function getOrCreateRoom({
 
 		const mediasoupWorker = getMediasoupWorker();
 
-		room = await Room.create({ mediasoupWorker, roomId, forceH264, forceVP9 });
+		room = await Room.create({
+			mediasoupWorker,
+			roomId,
+			forceH264,
+			forceVP9,
+			masterPeerId : peerId
+		});
 
 		rooms.set(roomId, room);
 		room.on('close', () => rooms.delete(roomId));
