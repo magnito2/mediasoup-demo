@@ -29,7 +29,13 @@ class Room extends EventEmitter
 	 * @param {Boolean} [forceVP9=false] - Whether just VP9 must be used in the
 	 *   mediasoup Router video codecs.
 	 */
-	static async create({ mediasoupWorker, roomId, forceH264 = false, forceVP9 = false })
+	static async create({
+		mediasoupWorker,
+		roomId,
+		forceH264 = false,
+		forceVP9 = false,
+		masterPeerId
+	})
 	{
 		logger.info(
 			'create() [roomId:%s, forceH264:%s, forceVP9:%s]',
@@ -73,17 +79,26 @@ class Room extends EventEmitter
 
 		const bot = await Bot.create({ mediasoupRouter });
 
-		return new Room(
-			{
-				roomId,
-				protooRoom,
-				mediasoupRouter,
-				audioLevelObserver,
-				bot
-			});
+		return new Room({
+			roomId,
+			protooRoom,
+			mediasoupRouter,
+			audioLevelObserver,
+			bot,
+			masterPeerId
+		});
 	}
 
-	constructor({ roomId, protooRoom, mediasoupRouter, audioLevelObserver, bot })
+	constructor(
+		{
+			roomId,
+			protooRoom,
+			mediasoupRouter,
+			audioLevelObserver,
+			bot,
+			masterPeerId
+		}
+	)
 	{
 		super();
 		this.setMaxListeners(Infinity);
@@ -136,6 +151,10 @@ class Room extends EventEmitter
 		// For debugging.
 		global.audioLevelObserver = this._audioLevelObserver;
 		global.bot = this._bot;
+
+		// masterPeerId, the peer that created the room, to give admin rights to him
+		this._masterPeerId = masterPeerId;
+
 	}
 
 	/**
@@ -759,10 +778,11 @@ class Room extends EventEmitter
 					.map((joinedPeer) => ({
 						id          : joinedPeer.id,
 						displayName : joinedPeer.data.displayName,
-						device      : joinedPeer.data.device
+						device      : joinedPeer.data.device,
+						isMaster    : joinedPeer.id === this._masterPeerId
 					}));
 
-				accept({ peers: peerInfos });
+				accept({ peers: peerInfos, masterPeerId: this._masterPeerId });
 
 				// Mark the new Peer as joined.
 				peer.data.joined = true;
