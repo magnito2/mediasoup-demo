@@ -75,8 +75,8 @@ export default class RoomClient
 	)
 	{
 		logger.debug(
-			'constructor() [roomId:"%s", peerId:"%s", displayName:"%s", device:%s]',
-			roomId, peerId, displayName, device.flag);
+			'constructor() [roomId:"%s", peerId:"%s", device:%s]',
+			roomId, peerId, device.flag);
 
 		// Closed flag.
 		// @type {Boolean}
@@ -225,7 +225,8 @@ export default class RoomClient
 		logger.debug('close()');
 
 		// Close protoo Peer
-		this._protoo.close();
+		if (this._protoo)
+			this._protoo.close();
 
 		// Close mediasoup Transports.
 		if (this._sendTransport)
@@ -751,6 +752,66 @@ export default class RoomClient
 					store.dispatch(
 						stateActions.setRoomActiveSpeaker(peerId));
 
+					break;
+				}
+
+				// Requested Feature, QUESTIONS
+
+				case 'questionRaised':
+				{
+					const { peerId, displayName } = notification.data;
+
+					store.dispatch(
+						stateActions.questionRaised({ peerId, displayName }));
+					break;
+				}
+
+				case 'questionAccepted':
+				{
+					const { peerId, displayName } = notification.data;
+
+					store.dispatch(
+						stateActions.questionAccepted({ peerId, displayName }));
+
+					store.dispatch(requestActions.notify(
+						{
+							text : 'Master has Accepted your request'
+						}));
+
+					// unmute unmuteMic
+					// this.unmuteMic();
+
+					break;
+				}
+
+				case 'questionCancelled':
+				case 'questionEnded':
+				{
+					const { peerId, displayName } = notification.data;
+
+					store.dispatch(
+						stateActions.questionEnded({ peerId, displayName }));
+
+					store.dispatch(requestActions.notify(
+						{
+							text : 'Question Ended'
+						}));
+
+					break;
+				}
+
+				case 'questionRejected':
+				{
+					const { peerId } = notification.data;
+
+					store.dispatch(
+						stateActions.questionRejected({ peerId }));
+
+					store.dispatch(requestActions.notify(
+						{
+							type : 'error',
+							text : 'Master has Cancelled your request'
+						}));
 					break;
 				}
 
@@ -2265,6 +2326,13 @@ export default class RoomClient
 			store.dispatch(
 				stateActions.setRoomMasterPeerId({ peerId: masterPeerId }));
 
+			// by default, all other peers will have their mics on mute.
+			if (store.getState().me.id !== masterPeerId)
+			{
+				logger.debug('Muting mic');
+				this.muteMic();
+			}
+
 			// Clean all the existing notifcations.
 			store.dispatch(
 				stateActions.removeAllNotifications());
@@ -2455,5 +2523,115 @@ export default class RoomClient
 			throw new Error('video.captureStream() not supported');
 
 		return this._externalVideoStream;
+	}
+
+	/**
+	* REQUESTED FEATURE, ASK QUESTIONS
+	*/
+	// called by non master peers to requestion Audience
+	async raiseQuestion()
+	{
+		try
+		{
+			await this._protoo.request('raiseQuestion', { peerId: store.getState().me.id });
+
+			store.dispatch(
+				stateActions.raiseQuestion({ peerId: store.getState().me.id }));
+		}
+		catch (error)
+		{
+			logger.error('raiseQuestion() failed:%o', error);
+
+			store.dispatch(requestActions.notify(
+				{
+					type : 'error',
+					text : `Error raising Question: ${error}`
+				}));
+		}
+
+	}
+
+	// called by master peer to give audience when requested
+	async acceptQuestion(peerId)
+	{
+		try
+		{
+			await this._protoo.request('acceptQuestion', { peerId: peerId });
+
+			store.dispatch(
+				stateActions.acceptQuestion({ peerId }));
+
+			store.dispatch(requestActions.notify(
+				{
+					text : `${store.getState().peers[peerId].displayName} Asking Question`
+				}));
+
+		}
+		catch (error)
+		{
+			logger.error('acceptQuestion() failed:%o', error);
+
+			store.dispatch(requestActions.notify(
+				{
+					type : 'error',
+					text : `Error Accepting Question: ${error}`
+				}));
+		}
+	}
+
+	// called by master peer to reject answering a question
+	async rejectQuestion(peerId)
+	{
+		try
+		{
+			await this._protoo.request('rejectQuestion', { peerId: peerId });
+
+			store.dispatch(
+				stateActions.rejectQuestion({ peerId }));
+			store.dispatch(requestActions.notify(
+				{
+					type : 'error',
+					text : `The Question from ${store.getState().peers[peerId].displayName} is rejected`
+				}));
+		}
+		catch (error)
+		{
+			logger.error('rejectQuestion() failed:%o', error);
+
+			store.dispatch(requestActions.notify(
+				{
+					type : 'error',
+					text : `Error rejecting Question: ${error}`
+				}));
+		}
+	}
+
+	// called by either party when the question has been answered successfully
+	async endQuestion(peerId = undefined)
+	{
+		const _peerId = peerId ? peerId : store.getState().me.id;
+
+		try
+		{
+			await this._protoo.request('endQuestion', { peerId: _peerId });
+
+			store.dispatch(
+				stateActions.endQuestion({ peerId: _peerId }));
+
+			store.dispatch(requestActions.notify(
+				{
+					text : 'Question Ended'
+				}));
+		}
+		catch (error)
+		{
+			logger.error('endQuestion() failed:%o', error);
+
+			store.dispatch(requestActions.notify(
+				{
+					type : 'error',
+					text : `Error ending Question: ${error}`
+				}));
+		}
 	}
 }
