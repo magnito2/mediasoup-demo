@@ -7,8 +7,10 @@ import store from '../redux/store';
 
 import Login from './auth/Login';
 import Register from './auth/Register';
+import Logout from './auth/Logout';
 import Room from './Room';
 import Landing from './Landing';
+import Home from './Home';
 import PrivateRoute from './auth/PrivateRoute';
 
 // Check for token to keep user logged in
@@ -48,7 +50,9 @@ const App = () =>
 				<Route exact path='/register' component={Register} />
 				<Route exact path='/login' component={Login} />
 				<Switch>
+					<PrivateRoute exact path='/home' component={Home}/>
 					<PrivateRoute exact path='/room' component={Room}/>
+					<PrivateRoute exact path='/logout' component={Logout}/>
 				</Switch>
 			</div>
 		</Router>
