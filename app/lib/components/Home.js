@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { roomsGetAll, changeName } from '../redux/roomsActions';
+import { roomsGetAll } from '../redux/roomsActions';
 import classnames from 'classnames';
 import { Link } from 'react-router-dom';
 
@@ -49,7 +49,7 @@ class Home extends Component
 		e.preventDefault();
 		if (this.state.roomName)
 		{
-			this.props.changeName(this.state.roomName);
+			// this.props.changeName(this.state.roomName);
 			const roomId = randomString({ length: 8 }).toLowerCase();
 
 			this.props.history.push(
@@ -113,5 +113,5 @@ const mapStateToProps = (state) => ({
 
 export default connect(
 	mapStateToProps,
-	{ roomsGetAll, changeName }
+	{ roomsGetAll }
 )(Home);

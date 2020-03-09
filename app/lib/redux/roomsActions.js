@@ -34,7 +34,7 @@ export const changeName = (name) => (dispatch) =>
 		{
 			dispatch(requestActions.notify(
 				{
-					text : res.data
+					text : 'room\'s name changed'
 				}));
 		})
 		.catch((err) =>
@@ -42,7 +42,7 @@ export const changeName = (name) => (dispatch) =>
 			dispatch(requestActions.notify(
 				{
 					type : 'error',
-					text : err.response
+					text : JSON.stringify(err.response)
 				}));
 		});
 };
