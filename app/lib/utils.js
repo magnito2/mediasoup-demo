@@ -34,3 +34,5 @@ export function setAuthToken(token)
 		delete axios.defaults.headers.common['Authorization'];
 	}
 }
+
+export const isEmpty = (myObject) => !Object.keys(myObject).length;
