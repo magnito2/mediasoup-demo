@@ -74,6 +74,22 @@
 				&.stats {
 					background-image: url('/resources/images/icon_stats_white_on.svg');
 				}
+				&.raise-question {
+					background-image: url('/resources/images/raise-question-2.svg');
+				}
+				&.answer-question {
+					background-image: url('/resources/images/answer-question.svg');
+					animation:blink 1.2s infinite;
+					animation-delay: -0.9s;
+				}
+				&.reject-question {
+					background-image: url('/resources/images/reject-question.svg');
+					animation:blink 1.2s infinite;
+				}
+				&.inprogress-question {
+					background-image: url('/resources/images/inprogress-question.svg');
+					animation:blink 1.2s infinite;
+				}
 			}
 		}
 
@@ -403,4 +419,20 @@
 @keyframes PeerView-spinner {
 	0% { opacity: 1; }
 	100% { opacity: 0.15; }
+}
+
+@keyframes blink{
+	0% { opacity: 1; }
+	49% { opacity: 1; }
+	60% { opacity: 0; }
+	99% { opacity: 0; }
+	100% { opacity: 1; }
+}
+
+@keyframes blinking{
+    0%{     color: #000;    }
+    49%{    color: #000; }
+    60%{    color: transparent; }
+    99%{    color:transparent;  }
+    100%{   color: #000;    }
 }
