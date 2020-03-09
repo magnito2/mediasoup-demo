@@ -357,6 +357,20 @@ async function createExpressApp()
 	// Routes
 	expressApp.use('/api/users', users);
 
+	expressApp.get('/api/rooms', (req, res) =>
+	{
+		const data = [ ...rooms ].map(([ roomKey, roomValue ]) =>
+		{
+			return {
+				id          : roomKey,
+				displayName :
+					roomValue._protooRoom.getPeer(roomValue._masterPeerId).data.displayName
+			};
+		});
+
+		res.status(200).json(data);
+	});
+
 	/**
    * Error handler.
    */
