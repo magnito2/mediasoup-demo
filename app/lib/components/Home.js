@@ -5,6 +5,7 @@ import classnames from 'classnames';
 import { Link } from 'react-router-dom';
 
 import deepEqual from 'deep-equal-x';
+import randomString from 'random-string';
 import { isEmpty } from '../utils';
 
 class Home extends Component
@@ -49,11 +50,12 @@ class Home extends Component
 		if (this.state.roomName)
 		{
 			this.props.changeName(this.state.roomName);
+			const roomId = randomString({ length: 8 }).toLowerCase();
 
 			this.props.history.push(
 				{
 					pathname : '/room',
-					search   : `?roomName=${this.state.roomName}`,
+					search   : `?roomId=${roomId}`,
 					state    : { roomName: this.state.roomName }
 				});
 		}
