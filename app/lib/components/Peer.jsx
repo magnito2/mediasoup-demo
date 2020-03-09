@@ -6,6 +6,10 @@ import { withRoomContext } from '../RoomContext';
 import * as stateActions from '../redux/stateActions';
 import PeerView from './PeerView';
 
+import Logger from '../Logger';
+
+const logger = new Logger('Peer');
+
 const Peer = (props) =>
 {
 	const {
@@ -15,7 +19,9 @@ const Peer = (props) =>
 		videoConsumer,
 		audioMuted,
 		faceDetection,
-		onSetStatsPeerId
+		onSetStatsPeerId,
+		question,
+		myQuestion
 	} = props;
 
 	const audioEnabled = (
@@ -87,6 +93,24 @@ const Peer = (props) =>
 					roomClient.requestConsumerKeyFrame(videoConsumer.id);
 				}}
 				onStatsClick={onSetStatsPeerId}
+				onRaiseQuestion={() =>
+				{
+					roomClient.raiseQuestion();
+				}}
+				onAcceptQuestion={(peerId) =>
+				{
+					roomClient.acceptQuestion(peerId);
+				}}
+				onRejectQuestion={(peerId) =>
+				{
+					roomClient.rejectQuestion(peerId);
+				}}
+				onEndQuestion={(peerId) =>
+				{
+					roomClient.endQuestion(peerId);
+				}}
+				question={question}
+				myQuestion={myQuestion}
 			/>
 		</div>
 	);
@@ -100,7 +124,9 @@ Peer.propTypes =
 	videoConsumer    : appPropTypes.Consumer,
 	audioMuted       : PropTypes.bool,
 	faceDetection    : PropTypes.bool.isRequired,
-	onSetStatsPeerId : PropTypes.func.isRequired
+	onSetStatsPeerId : PropTypes.func.isRequired,
+	question         : PropTypes.any.isRequired,
+	myQuestion      	: PropTypes.any
 };
 
 const mapStateToProps = (state, { id }) =>
@@ -114,12 +140,24 @@ const mapStateToProps = (state, { id }) =>
 	const videoConsumer =
 		consumersArray.find((consumer) => consumer.track.kind === 'video');
 
+	const question =
+		state.questions.filter((qPeer) => qPeer.peerId === id).length ?
+			state.questions.filter((qPeer) => qPeer.peerId === id)[0] :
+			{};
+
+	const myQuestion =
+	state.questions.filter((qPeer) => qPeer.peerId === me.id).length ?
+		state.questions.filter((qPeer) => qPeer.peerId === me.id)[0] :
+		{};
+
 	return {
 		peer,
 		audioConsumer,
 		videoConsumer,
 		audioMuted    : me.audioMuted,
-		faceDetection : state.room.faceDetection
+		faceDetection : state.room.faceDetection,
+		question,
+		myQuestion
 	};
 };
 
