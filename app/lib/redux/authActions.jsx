@@ -50,6 +50,7 @@ export const loginUser = (userData) => (dispatch) =>
 			// Set current user
 
 			dispatch(setCurrentUser(decoded));
+			location.reload();
 		})
 		.catch((err) =>
 			dispatch({
