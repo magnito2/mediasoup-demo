@@ -10,6 +10,8 @@ import Logger from '../Logger';
 import * as appPropTypes from './appPropTypes';
 import EditableInput from './EditableInput';
 
+import { isEmpty } from '../utils';
+
 const logger = new Logger('PeerView');
 
 const tinyFaceDetectorOptions = new faceapi.TinyFaceDetectorOptions(
@@ -83,7 +85,13 @@ export default class PeerView extends React.Component
 			onChangeVideoPreferredLayers,
 			onChangeVideoPriority,
 			onRequestKeyFrame,
-			onStatsClick
+			onStatsClick,
+			onRaiseQuestion,
+			onAcceptQuestion,
+			onRejectQuestion,
+			onEndQuestion,
+			question,
+			myQuestion
 		} = this.props;
 
 		const {
@@ -100,6 +108,12 @@ export default class PeerView extends React.Component
 			<div data-component='PeerView'>
 				<div className='info'>
 					<div className='icons'>
+						<ReactTooltip
+							type='light'
+							effect='solid'
+							delayShow={100}
+							delayHide={50}
+						/>
 						<div
 							className={classnames('icon', 'info', { on: showInfo })}
 							onClick={() => this.setState({ showInfo: !showInfo })}
@@ -109,6 +123,47 @@ export default class PeerView extends React.Component
 							className={classnames('icon', 'stats')}
 							onClick={() => onStatsClick(peer.id)}
 						/>
+
+						<If condition={peer.isMaster && !isMe && isEmpty(myQuestion)}>
+							<div
+								className='icon raise-question'
+								data-tip={'Ask Question'}
+								onClick={() => onRaiseQuestion()}
+							/>
+						</If>
+						<If condition={peer.isMaster && !isMe && !isEmpty(myQuestion) && myQuestion.status === 'AWAITING-RESPONSE'}>
+							<div
+								className='icon inprogress-question'
+								data-tip={'Cancel Question'}
+								onClick={() => onEndQuestion()}
+							/>
+						</If>
+						<If condition={peer.isMaster && !isMe && !isEmpty(myQuestion) && myQuestion.status === 'ACCEPTED'}>
+							<div
+								className='icon reject-question'
+								data-tip={'Cancel Question'}
+								onClick={() => onEndQuestion()}
+							/>
+						</If>
+						<If condition={question && !isEmpty(question) && question.status === 'RAISED'}>
+							<div
+								className='icon answer-question'
+								data-tip={'Accept Question'}
+								onClick={() => onAcceptQuestion(peer.id)}
+							/>
+							<div
+								className='icon reject-question'
+								data-tip={'Reject Question'}
+								onClick={() => onRejectQuestion(peer.id)}
+							/>
+						</If>
+						<If condition={question && !isEmpty(question) && question.status === 'ACCEPTED'}>
+							<div
+								className='icon reject-question'
+								data-tip={'End Question'}
+								onClick={() => onEndQuestion(peer.id)}
+							/>
+						</If>
 					</div>
 
 					<div className={classnames('box', { visible: showInfo })}>
@@ -791,5 +846,11 @@ PeerView.propTypes =
 	onChangeVideoPreferredLayers   : PropTypes.func,
 	onChangeVideoPriority          : PropTypes.func,
 	onRequestKeyFrame              : PropTypes.func,
-	onStatsClick                   : PropTypes.func.isRequired
+	onStatsClick                   : PropTypes.func.isRequired,
+	onRaiseQuestion                : PropTypes.func.isRequired,
+	onAcceptQuestion              	: PropTypes.func.isRequired,
+	onRejectQuestion              	: PropTypes.func.isRequired,
+	onEndQuestion                 	: PropTypes.func.isRequired,
+	question                       : PropTypes.any,
+	myQuestion                    	: PropTypes.any
 };
