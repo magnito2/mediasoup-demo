@@ -1418,6 +1418,124 @@ class Room extends EventEmitter
 				break;
 			}
 
+			case 'raiseQuestion':
+			{
+				const { peerId } = request.data;
+
+				const masterPeer = this._protooRoom.getPeer(this._masterPeerId);
+
+				if (!masterPeer)
+				{
+					logger.error('master Peer cannot be found, masterPeerId %s', this._masterPeerId);
+					reject(500, `master Peer cannot be found, masterPeerId: ${this._masterPeerId}`);
+				}
+				else
+				{
+					masterPeer.notify(
+						'questionRaised',
+						{
+							peerId,
+							displayName : peer.data.displayName
+						})
+						.catch(() => {});
+					accept();
+				}
+
+				logger.info('Peer %s has raised a question', peerId);
+				break;
+			}
+
+			case 'acceptQuestion':
+			{
+				const { peerId } = request.data;
+
+				const otherPeer = this._protooRoom.getPeer(peerId);
+
+				if (!otherPeer)
+				{
+					logger.error('other Peer cannot be found, otherPeerId %s', peerId);
+					reject(500, `other Peer cannot be found, otherPeerId: ${peerId}`);
+				}
+				else
+				{
+					otherPeer.notify(
+						'questionAccepted',
+						{
+							peerId,
+							displayName : otherPeer.data.displayName
+						})
+						.catch(() => {});
+					accept();
+				}
+
+				logger.info('Master has Accepted Peer %s\'s question', otherPeer.data.displayName);
+				break;
+			}
+
+			case 'rejectQuestion':
+			{
+				const { peerId } = request.data;
+
+				const otherPeer = this._protooRoom.getPeer(peerId);
+
+				if (!otherPeer)
+				{
+					logger.error('other Peer cannot be found, otherPeerId %s', peerId);
+					reject(500, `Other Peer cannot be found, otherPeerId: ${peerId}`);
+				}
+				else
+				{
+					otherPeer.notify(
+						'questionRejected',
+						{
+							peerId
+						})
+						.catch(() => {});
+					accept();
+				}
+
+				logger.info('Question Rejected for %s', peerId);
+
+				break;
+			}
+
+			case 'endQuestion':
+			{
+				const { peerId } = request.data;
+				let otherPeer;
+
+				// lets check who ended the question, the master or the other peer
+				if (peer.id === this._masterPeerId && peerId !== peer.id)
+				{
+					// the peer who ended the question is master.
+					otherPeer = this._protooRoom.getPeer(peerId);
+				}
+				else if (peer.id === peerId && this._masterPeerId !== peerId)
+				{
+					otherPeer = this._protooRoom.getPeer(this._masterPeerId);
+				}
+
+				if (!otherPeer)
+				{
+					logger.error('other Peer cannot be found, otherPeerId %s', peerId);
+					reject(500, `Other Peer cannot be found, otherPeerId: ${peerId}`);
+				}
+				else
+				{
+					otherPeer.notify(
+						'questionEnded',
+						{
+							peerId
+						})
+						.catch(() => {});
+					accept();
+				}
+
+				logger.info('Question Ended by %s', peerId);
+
+				break;
+			}
+
 			default:
 			{
 				logger.error('unknown request.method "%s"', request.method);
