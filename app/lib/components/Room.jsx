@@ -14,6 +14,7 @@ import Peers from './Peers';
 import Stats from './Stats';
 import Notifications from './Notifications';
 import NetworkThrottle from './NetworkThrottle';
+import { Link } from 'react-router-dom';
 
 class Room extends React.Component
 {
@@ -65,6 +66,17 @@ class Room extends React.Component
 							>
 								invitation link
 							</a>
+						</div>
+					</div>
+
+					<div className='room-logout-wrapper'>
+						<div className='room-logout'>
+							<Link
+								className='link'
+								to='/logout'
+							>
+								Logout
+							</Link>
 						</div>
 					</div>
 
@@ -153,7 +165,8 @@ Room.propTypes =
 	room            : appPropTypes.Room.isRequired,
 	me              : appPropTypes.Me.isRequired,
 	amActiveSpeaker : PropTypes.bool.isRequired,
-	onRoomLinkCopy  : PropTypes.func.isRequired
+	onRoomLinkCopy  : PropTypes.func.isRequired,
+	location        : PropTypes.any
 };
 
 const mapStateToProps = (state) =>
