@@ -3,7 +3,12 @@ import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { loginUser } from '../../redux/authActions';
+import * as requestActions from '../../redux/requestActions';
 import classnames from 'classnames';
+
+import deepEqual from 'deep-equal-x';
+import { isEmpty } from '../../utils';
+
 import Logger from '../../Logger';
 const logger = new Logger('Login');
 
@@ -15,25 +20,39 @@ class Login extends Component
 		this.state = {
 			email    : '',
 			password : '',
-			errors   : { }
+			errors   : { },
+			isAuth   : false
 		};
 		this.handleOnChange = this.handleOnChange.bind(this);
 		this.handleOnSubmit = this.handleOnSubmit.bind(this);
-
 	}
 
-	componentWillReceiveProps(nextProps)
+	componentDidUpdate(prevProps)
 	{
-		if (nextProps.auth.isAuthenticated)
+
+		if (prevProps.auth.isAuthenticated)
 		{
-			this.props.history.push('./room'); // push user to room when they login
+			this.props.onAuthenticated();
+			this.props.history.push('/home'); // push user to room when they login
 		}
-		if (nextProps.errors)
+	}
+
+	static getDerivedStateFromProps(props, state)
+	{
+		if (props.errors && !isEmpty(props.errors) && !deepEqual(props.errors, state.errors))
 		{
-			this.setState({
-				errors : nextProps.errors
-			});
+			return {
+				errors : props.errors
+			};
 		}
+		if (props.auth.isAuthenticated !== state.isAuth)
+		{
+			return {
+				isAuth : props.auth.isAuthenticated
+			};
+		}
+
+		return null;
 	}
 
 	handleOnChange(e)
@@ -49,8 +68,7 @@ class Login extends Component
 			password : this.state.password
 		};
 
-		logger.debug(userData);
-		this.props.loginUser(userData);
+		this.props.onLoginUser(userData);
 	}
 
 	render()
@@ -58,70 +76,44 @@ class Login extends Component
 		const { errors } = this.state;
 
 		return (
-			<div className='container'>
-				<div style={{ marginTop: '4rem' }} className='row'>
-					<div className='col s8 offset-s2'>
-						<Link to='/' className='btn-flat waves-effect'>
-							<i className='material-icons left'>keyboard_backspace</i> Back to
-							home
-						</Link>
-						<div className='col s12' style={{ paddingLeft: '11.250px' }}>
-							<h4>
-								<b>Login</b> below
-							</h4>
-							<p className='grey-text text-darken-1'>
-								Don&apos;t have an account? <Link to='/register'>Register</Link>
-							</p>
+			<div data-component='Login'>
+				<div className='login-page'>
+					<div className='form'>
+						<div className='home-link'>
+							<p className='message'><Link to='/' className='icon-left'>Go Back</Link></p>
 						</div>
-						<form noValidate onSubmit={this.handleOnSubmit}>
-							<div className='input-field col s12'>
-								<input
-									onChange={this.handleOnChange}
-									value={this.state.email}
-									error={errors.email}
-									id='email'
-									type='email'
-									className={classnames('', {
-										invalid : errors.email || errors.emailnotfound
-									})}
-								/>
-								<label htmlFor='email'>Email</label>
-								<span className='red-text'>
-									{errors.email}
-									{errors.emailnotfound}
-								</span>
-							</div>
-							<div className='input-field col s12'>
-								<input
-									onChange={this.handleOnChange}
-									value={this.state.password}
-									error={errors.password}
-									id='password'
-									type='password'
-									className={classnames('', {
-										invalid : errors.password || errors.passwordincorrect
-									})}
-								/>
-								<label htmlFor='password'>Password</label>
-								<span className='red-text'>
-									{errors.password}
-									{errors.passwordincorrect}
-								</span>
-							</div>
-							<div className='col s12' style={{ paddingLeft: '11.250px' }}>
-								<button
-									style={{
-										width         : '150px',
-										borderRadius  : '3px',
-										letterSpacing : '1.5px',
-										marginTop     : '1rem'
-									}}
-									type='submit'
-									className='btn btn-large waves-effect waves-light hoverable blue accent-3'
-								>
-									Login
-								</button>
-							</div>
+						<form className='login-form' noValidate onSubmit={this.handleOnSubmit}>
+							<input
+								onChange={this.handleOnChange}
+								value={this.state.email}
+								error={errors.email}
+								id='email'
+								type='email'
+								placeholder='email'
+								className={classnames('', {
+									invalid : errors.email || errors.emailnotfound
+								})}
+							/>
+							<span className='red-text'>
+								{errors.email}
+								{errors.emailnotfound}
+							</span>
+							<input
+								onChange={this.handleOnChange}
+								value={this.state.password}
+								error={errors.password}
+								id='password'
+								type='password'
+								className={classnames('', {
+									invalid : errors.password || errors.passwordincorrect
+								})}
+							/>
+							<span className='red-text'>
+								{errors.password}
+								{errors.passwordincorrect}
+							</span>
+							<button>login</button>
+							<p className='message'>Not registered? <Link to='/register'>Register</Link></p>
 						</form>
 					</div>
 				</div>
@@ -131,10 +123,11 @@ class Login extends Component
 }
 
 Login.propTypes = {
-	loginUser : PropTypes.func.isRequired,
-	auth      : PropTypes.object.isRequired,
-	errors    : PropTypes.object.isRequired,
-	history  	: PropTypes.object
+	onLoginUser     : PropTypes.func.isRequired,
+	auth            : PropTypes.object.isRequired,
+	errors          : PropTypes.object,
+	history        	: PropTypes.object,
+	onAuthenticated : PropTypes.func
 };
 
 const mapStateToProps = (state) => ({
@@ -142,7 +135,24 @@ const mapStateToProps = (state) => ({
 	errors : state.errors
 });
 
+const mapDispatchToProps = (dispatch) =>
+{
+	return {
+		onAuthenticated : () =>
+		{
+			dispatch(requestActions.notify(
+				{
+					text : 'You are already signed in'
+				}));
+		},
+		onLoginUser : (userData) =>
+		{
+			dispatch(loginUser(userData));
+		}
+	};
+};
+
 export default connect(
 	mapStateToProps,
-	{ loginUser }
+	mapDispatchToProps
 )(Login);
