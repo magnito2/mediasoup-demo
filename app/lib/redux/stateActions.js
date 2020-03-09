@@ -1,3 +1,5 @@
+import { Questions } from './types';
+
 export const setRoomUrl = (url) =>
 {
 	return {
@@ -322,5 +324,87 @@ export const removeAllNotifications = () =>
 {
 	return {
 		type : 'REMOVE_ALL_NOTIFICATIONS'
+	};
+};
+
+// Questions...
+
+export const raiseQuestion = (data) =>
+{
+	return {
+		type    : Questions.RAISE,
+		payload : data
+	};
+};
+
+export const questionRaised = (data) =>
+{
+	return {
+		type    : Questions.RAISED,
+		payload	: data
+	};
+};
+
+export const acceptQuestion = (data) =>
+{
+	return {
+		type    : Questions.ACCEPT,
+		payload	: data
+	};
+};
+
+export const questionAccepted = (data) =>
+{
+	return {
+		type    : Questions.ACCEPTED,
+		payload	: data
+	};
+};
+
+export const cancelQuestion = (data) =>
+{
+	return {
+		type    : Questions.CANCEL,
+		payload	: data
+	};
+};
+
+export const questionCancelled = (data) =>
+{
+	return {
+		type    : Questions.CANCELLED,
+		payload	: data
+	};
+};
+
+export const rejectQuestion = (data) =>
+{
+	return {
+		type    : Questions.REJECT,
+		payload	: data
+	};
+};
+
+export const questionRejected = (data) =>
+{
+	return {
+		type    : Questions.REJECTED,
+		payload : data
+	};
+};
+
+export const endQuestion = (data) =>
+{
+	return {
+		type    : Questions.END,
+		payload	: data
+	};
+};
+
+export const questionEnded = (data) =>
+{
+	return {
+		type    : Questions.ENDED,
+		payload	: data
 	};
 };
