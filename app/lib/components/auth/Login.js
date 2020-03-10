@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { loginUser } from '../../redux/authActions';
+import { loginUser, setUserLoading } from '../../redux/authActions';
 import * as requestActions from '../../redux/requestActions';
 import classnames from 'classnames';
 
@@ -69,11 +69,13 @@ class Login extends Component
 		};
 
 		this.props.onLoginUser(userData);
+		this.props.onUserLoading();
 	}
 
 	render()
 	{
 		const { errors } = this.state;
+		const { loading } = this.props.auth;
 
 		return (
 			<div data-component='Login'>
@@ -115,6 +117,7 @@ class Login extends Component
 							<button>login</button>
 							<p className='message'>Not registered? <Link to='/register'>Register</Link></p>
 						</form>
+						{ loading && <div className='loading-overlay' /> }
 					</div>
 				</div>
 			</div>
@@ -127,7 +130,8 @@ Login.propTypes = {
 	auth            : PropTypes.object.isRequired,
 	errors          : PropTypes.object,
 	history        	: PropTypes.object,
-	onAuthenticated : PropTypes.func
+	onAuthenticated : PropTypes.func,
+	onUserLoading   : PropTypes.func
 };
 
 const mapStateToProps = (state) => ({
@@ -148,6 +152,10 @@ const mapDispatchToProps = (dispatch) =>
 		onLoginUser : (userData) =>
 		{
 			dispatch(loginUser(userData));
+		},
+		onUserLoading : () =>
+		{
+			dispatch(setUserLoading());
 		}
 	};
 };

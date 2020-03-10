@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Link, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { registerUser } from '../../redux/authActions';
+import { registerUser, setUserLoading } from '../../redux/authActions';
 import classnames from 'classnames';
 import Logger from '../../Logger';
 
@@ -51,11 +51,13 @@ class Register extends Component
 
 		logger.debug(newUser);
 		this.props.registerUser(newUser, this.props.history);
+		this.props.setUserLoading();
 	}
 
 	render()
 	{
 		const { errors } = this.state;
+		const { loading } = this.props.auth;
 
 		return (
 			<div data-component='Login'>
@@ -76,6 +78,9 @@ class Register extends Component
 								})}
 								placeholder='Username'
 							/>
+							<span className='red-text'>
+								{errors.name}
+							</span>
 							<input
 								onChange={this.handleOnChange}
 								value={this.state.email}
@@ -87,6 +92,9 @@ class Register extends Component
 								})}
 								placeholder='Email'
 							/>
+							<span className='red-text'>
+								{errors.email}
+							</span>
 							<input
 								onChange={this.handleOnChange}
 								value={this.state.password}
@@ -98,6 +106,9 @@ class Register extends Component
 								})}
 								placeholder='Password'
 							/>
+							<span className='red-text'>
+								{errors.password}
+							</span>
 							<input
 								onChange={this.handleOnChange}
 								value={this.state.password2}
@@ -109,9 +120,13 @@ class Register extends Component
 								})}
 								placeholder='Confirm Password'
 							/>
+							<span className='red-text'>
+								{errors.password2}
+							</span>
 							<button>create</button>
 							<p className='message'>Already registered? <Link to='/login'>Sign In</Link></p>
 						</form>
+						{ loading && <div className='loading-overlay' /> }
 					</div>
 				</div>
 			</div>
@@ -132,5 +147,5 @@ const mapStateToProps = (state) => ({
 
 export default connect(
 	mapStateToProps,
-	{ registerUser }
+	{ registerUser, setUserLoading }
 )(withRouter(Register));
