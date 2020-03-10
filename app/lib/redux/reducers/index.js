@@ -8,6 +8,7 @@ import consumers from './consumers';
 import dataConsumers from './dataConsumers';
 import notifications from './notifications';
 import authReducer from './authReducer';
+import errorsReducer from './errorsReducer';
 import questions from './questions';
 import rooms from './rooms';
 
@@ -21,7 +22,8 @@ const reducers = combineReducers(
 		consumers,
 		dataConsumers,
 		notifications,
-		auth : authReducer,
+		auth   : authReducer,
+		errors : errorsReducer,
 		questions,
 		rooms
 	});
