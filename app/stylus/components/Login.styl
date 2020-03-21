@@ -5,6 +5,7 @@
 
   > .login-page {
     width: 360px;
+    max-width: 100%;
     padding: 8% 0 0;
     margin: auto;
 
@@ -28,6 +29,12 @@
         padding: 15px;
         box-sizing: border-box;
         font-size: 14px;
+      }
+
+      & select {
+        width: 100%;
+        margin: 0 0 15px;
+        padding: 2%;
       }
 
       & .invalid {
@@ -72,9 +79,6 @@
         }
       }
 
-      & .register-form {
-        display: none;
-      }
 
       & .home-link{
           padding: 0 0 30px;

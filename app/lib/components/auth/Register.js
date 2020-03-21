@@ -14,11 +14,13 @@ class Register extends Component
 	{
 		super();
 		this.state = {
-			name      : '',
-			email     : '',
-			password  : '',
-			password2 : '',
-			errors    : {}
+			name         : '',
+			email        : '',
+			userType    	: '',
+			centreNumber : '',
+			password     : '',
+			password2    : '',
+			errors       : {}
 		};
 		this.handleOnChange = this.handleOnChange.bind(this);
 		this.handleOnSubmit = this.handleOnSubmit.bind(this);
@@ -43,10 +45,12 @@ class Register extends Component
 	{
 		e.preventDefault();
 		const newUser = {
-			name      : this.state.name,
-			email     : this.state.email,
-			password  : this.state.password,
-			password2 : this.state.password2
+			name         : this.state.name,
+			email        : this.state.email,
+			userType    	: this.state.userType,
+			centreNumber : this.state.centreNumber,
+			password     : this.state.password,
+			password2    : this.state.password2
 		};
 
 		logger.debug(newUser);
@@ -80,6 +84,28 @@ class Register extends Component
 							/>
 							<span className='red-text'>
 								{errors.name}
+							</span>
+							<select id='userType' value={this.state.userType} onChange={this.handleOnChange}>
+								<option value=''>User Type</option>
+								<option value='student'>Student</option>
+								<option value='teacher'>Teacher</option>
+							</select>
+							<span className='red-text'>
+								{errors.userType}
+							</span>
+							<input
+								onChange={this.handleOnChange}
+								value={this.state.centreNumber}
+								error={errors.centreNumber}
+								id='centreNumber'
+								type='text'
+								className={classnames('', {
+									invalid : errors.centreNumber
+								})}
+								placeholder='Centre Number'
+							/>
+							<span className='red-text'>
+								{errors.centreNumber}
 							</span>
 							<input
 								onChange={this.handleOnChange}
