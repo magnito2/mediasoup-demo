@@ -8,23 +8,39 @@
     padding: 8% 0 0;
     margin: auto;
 
+    +mobile() {
+      width : 80%;
+    }
+
     > .room-list {
       position: relative;
       z-index: 1;
       background: #FFFFFF;
-      max-width: 50%;
-      margin: 0 auto 100px;
-      padding: 5%;
       text-align: center;
       box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+      font-size: 1em;
+
+      +desktop() {
+        max-width: 50%;
+        margin: 0 auto 20%;
+        padding: 10px 20px;
+      }
+
+      +mobile() {
+        max-width: 100%;
+        margin: 5% auto 20%;
+        padding: 6px 10px;
+      }
 
       & ul {
-        padding: 5%;
+        padding: 2%;
+        list-style-type: none;
         display: block;
 
         & li {
-          padding: 2%;
-
+          padding: 2% 4%;
+          background-color: #EEEEEE;
+          border: 1px solid #DDDDDD;
         }
       }
     }
@@ -33,11 +49,45 @@
       position: relative;
       z-index: 1;
       background: #FFFFFF;
-      max-width: 50%;
-      margin: 0 auto 100px;
-      padding: 5%;
       text-align: center;
       box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+
+      +desktop() {
+        max-width: 50%;
+        margin: 0 auto 20%;
+        padding: 10px 20px;
+        font-size: 1em;
+
+          & input {
+            margin: 5%;
+            max-width: 100%;
+            border: none;
+            border-bottom: 2px solid;
+          }
+
+          & button {
+            max-width: 100%;
+          }
+      }
+
+      +mobile() {
+        max-width: 100%;
+        margin: 0 auto 20%;
+        padding: 6px 10px;
+        font-size: 1em;
+
+        & input {
+          margin: 15% 2% 5%;
+          max-width: 90%;
+          border: none;
+          border-bottom: 2px solid;
+        }
+
+        & button {
+          margin: 5% 2% 5%;
+          width: 90%;
+        }
+      }
 
 
     }
