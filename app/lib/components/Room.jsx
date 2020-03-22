@@ -38,6 +38,10 @@ class Room extends React.Component
 						<p className={classnames('text', room.state)}>{room.state}</p>
 					</div>
 
+					<div className='roomName'>
+						<p className={classnames('text')}>{room.roomName}</p>
+					</div>
+
 					<div className='room-link-wrapper'>
 						<div className='room-link'>
 							<a
@@ -154,8 +158,9 @@ class Room extends React.Component
 	componentDidMount()
 	{
 		const { roomClient }	= this.props;
+		const { roomName } = ((this.props.location || {}).state || {});
 
-		roomClient.join();
+		roomClient.join(roomName);
 	}
 }
 

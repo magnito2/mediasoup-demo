@@ -48,6 +48,14 @@ export const setRoomMasterPeerId = (peerId) =>
 	};
 };
 
+export const setRoomName = (roomName) =>
+{
+	return {
+		type    : 'SET_ROOM_NAME',
+		payload : roomName
+	};
+};
+
 export const setMe = ({ peerId, displayName, displayNameSet, device }) =>
 {
 	return {

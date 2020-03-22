@@ -107,6 +107,10 @@ class Room extends EventEmitter
 		// @type {String}
 		this._roomId = roomId;
 
+		// Room Name
+		// @type {String}
+		this._roomName = null;
+
 		// Closed flag.
 		// @type {Boolean}
 		this._closed = false;
@@ -753,8 +757,16 @@ class Room extends EventEmitter
 					displayName,
 					device,
 					rtpCapabilities,
-					sctpCapabilities
+					sctpCapabilities,
+					roomName
 				} = request.data;
+
+				// Store the room name, if the peer is master
+				if (roomName && peer.id === this._masterPeerId)
+				{
+					this._roomName = roomName;
+					logger.error(`Setting room Name, ${roomName}`);
+				}
 
 				// Store client data into the protoo Peer data object.
 				peer.data.joined = true;
@@ -782,7 +794,11 @@ class Room extends EventEmitter
 						isMaster    : joinedPeer.id === this._masterPeerId
 					}));
 
-				accept({ peers: peerInfos, masterPeerId: this._masterPeerId });
+				accept({
+					peers        : peerInfos,
+					masterPeerId : this._masterPeerId,
+					roomName     : this._roomName
+				});
 
 				// Mark the new Peer as joined.
 				peer.data.joined = true;

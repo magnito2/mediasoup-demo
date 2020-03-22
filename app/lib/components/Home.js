@@ -84,7 +84,7 @@ class Home extends Component
 							{
 								rooms.map((room, index) =>
 								{
-									return <li key={index}><a href={`/room?roomId=${room.id}`}>Room {room.name || room.id} by {room.displayName}</a></li>;
+									return <li key={index}><a href={`/room?roomId=${room.id}`}>{room.roomName || room.id} by {room.displayName}</a></li>;
 								})
 							}
 						</ul>
@@ -97,6 +97,7 @@ class Home extends Component
 								id='roomName'
 								type='text'
 								placeholder='name of class'
+								maxLength='40'
 							/>
 							<button>Create</button>
 						</form>

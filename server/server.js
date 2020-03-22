@@ -361,10 +361,13 @@ async function createExpressApp()
 	{
 		const data = [ ...rooms ].map(([ roomKey, roomValue ]) =>
 		{
+			logger.info(`room name is ${roomValue._roomName}`);
+
 			return {
 				id          : roomKey,
 				displayName :
-					roomValue._protooRoom.getPeer(roomValue._masterPeerId).data.displayName
+					roomValue._protooRoom.getPeer(roomValue._masterPeerId).data.displayName,
+				roomName : roomValue._roomName
 			};
 		});
 

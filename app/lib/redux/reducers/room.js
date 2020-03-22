@@ -5,7 +5,8 @@ const initialState =
 	activeSpeakerId : null,
 	statsPeerId     : null,
 	faceDetection   : false,
-	masterPeerId   	: null
+	masterPeerId   	: null,
+	roomName        : null
 };
 
 const room = (state = initialState, action) =>
@@ -72,6 +73,13 @@ const room = (state = initialState, action) =>
 			const { peerId } = action.payload;
 
 			return { ...state, masterPeerId: peerId };
+		}
+
+		case 'SET_ROOM_NAME':
+		{
+			const { roomName } = action.payload;
+
+			return { ...state, roomName: roomName };
 		}
 
 		default:

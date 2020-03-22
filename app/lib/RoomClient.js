@@ -213,6 +213,9 @@ export default class RoomClient
 			VIDEO_SVC_ENCODINGS[0].scalabilityMode = svc;
 			VIDEO_KSVC_ENCODINGS[0].scalabilityMode = `${svc}_KEY`;
 		}
+
+		// Room name
+		this._roomName = null;
 	}
 
 	close()
@@ -239,11 +242,14 @@ export default class RoomClient
 			stateActions.setRoomState('closed'));
 	}
 
-	async join()
+	async join(roomName = null)
 	{
 		const protooTransport = new protooClient.WebSocketTransport(this._protooUrl);
 
 		this._protoo = new protooClient.Peer(protooTransport);
+
+		// save _roomName
+		this._roomName = roomName;
 
 		store.dispatch(
 			stateActions.setRoomState('connecting'));
@@ -2306,7 +2312,7 @@ export default class RoomClient
 
 			// Join now into the room.
 			// NOTE: Don't send our RTP capabilities if we don't want to consume.
-			const { peers, masterPeerId } = await this._protoo.request(
+			const { peers, masterPeerId, roomName } = await this._protoo.request(
 				'join',
 				{
 					displayName     : this._displayName,
@@ -2316,7 +2322,8 @@ export default class RoomClient
 						: undefined,
 					sctpCapabilities : this._useDataChannel && this._consume
 						? this._mediasoupDevice.sctpCapabilities
-						: undefined
+						: undefined,
+					roomName : this._roomName ? this._roomName : undefined
 				});
 
 			store.dispatch(
@@ -2326,12 +2333,9 @@ export default class RoomClient
 			store.dispatch(
 				stateActions.setRoomMasterPeerId({ peerId: masterPeerId }));
 
-			// by default, all other peers will have their mics on mute.
-			if (store.getState().me.id !== masterPeerId)
-			{
-				logger.debug('Muting mic');
-				this.muteMic();
-			}
+			// set room name for the room
+			store.dispatch(
+				stateActions.setRoomName({ roomName }));
 
 			// Clean all the existing notifcations.
 			store.dispatch(
@@ -2375,6 +2379,7 @@ export default class RoomClient
 						this.enableBotDataProducer();
 					}
 				});
+
 			}
 
 			// NOTE: For testing.
