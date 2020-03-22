@@ -6,7 +6,7 @@ import * as appPropTypes from './appPropTypes';
 import { Appear } from './transitions';
 import Peer from './Peer';
 
-const Peers = ({ peers, activeSpeakerId }) =>
+const Peers = ({ peers, activeSpeakerId, masterPeerId }) =>
 {
 	return (
 		<div data-component='Peers'>
@@ -18,7 +18,7 @@ const Peers = ({ peers, activeSpeakerId }) =>
 							<div
 								className={classnames('peer-container', {
 									'active-speaker' : peer.id === activeSpeakerId
-								})}
+								}, { 'master': peer.id === masterPeerId })}
 							>
 								<Peer id={peer.id} />
 							</div>
@@ -33,7 +33,8 @@ const Peers = ({ peers, activeSpeakerId }) =>
 Peers.propTypes =
 {
 	peers           : PropTypes.arrayOf(appPropTypes.Peer).isRequired,
-	activeSpeakerId : PropTypes.string
+	activeSpeakerId : PropTypes.string,
+	masterPeerId    : PropTypes.string
 };
 
 const mapStateToProps = (state) =>
@@ -51,7 +52,8 @@ const mapStateToProps = (state) =>
 
 	return {
 		peers           : peersArray,
-		activeSpeakerId : state.room.activeSpeakerId
+		activeSpeakerId : state.room.activeSpeakerId,
+		masterPeerId    : state.room.masterPeerId
 	};
 };
 
