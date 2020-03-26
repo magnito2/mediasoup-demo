@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { roomsGetAll } from '../redux/roomsActions';
-import classnames from 'classnames';
 import { Link } from 'react-router-dom';
 
+import PropTypes from 'prop-types';
 import deepEqual from 'deep-equal-x';
 import randomString from 'random-string';
 import { isEmpty } from '../utils';
@@ -51,12 +51,13 @@ class Home extends Component
 		{
 			// this.props.changeName(this.state.roomName);
 			const roomId = randomString({ length: 8 }).toLowerCase();
+			const { userId } = this.props;
 
 			this.props.history.push(
 				{
 					pathname : '/room',
 					search   : `?roomId=${roomId}`,
-					state    : { roomName: this.state.roomName }
+					state    : { roomName: this.state.roomName, peerId: userId, roomId }
 				});
 		}
 	}
@@ -64,6 +65,7 @@ class Home extends Component
 	render()
 	{
 		const { rooms } = this.state;
+		const { userId } = this.props;
 
 		return (
 			<div data-component='Home'>
@@ -84,7 +86,15 @@ class Home extends Component
 							{
 								rooms.map((room, index) =>
 								{
-									return <li key={index}><a href={`/room?roomId=${room.id}`}>{room.roomName || room.id} by {room.displayName}</a></li>;
+									return (<li key={index}>
+										<Link to={{
+											pathname : '/room',
+											state    : {
+												roomId : room.id,
+												peerId : userId
+											}
+										}}
+										>{room.roomName || room.id} by {room.displayName}</Link></li>);
 								})
 							}
 						</ul>
@@ -108,8 +118,16 @@ class Home extends Component
 	}
 }
 
+Home.propTypes =
+{
+	userId      : PropTypes.string.isRequired,
+	history     : PropTypes.any.isRequired,
+	roomsGetAll : PropTypes.func.isRequired
+};
+
 const mapStateToProps = (state) => ({
-	rooms : state.rooms
+	rooms  : state.rooms,
+	userId	: (state.auth.user || {}).id
 });
 
 export default connect(

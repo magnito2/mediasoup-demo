@@ -64,7 +64,8 @@ async function run()
 	logger.debug('run() [environment:%s]', process.env.NODE_ENV);
 
 	const urlParser = new UrlParse(window.location.href, true);
-	const peerId = randomString({ length: 8 }).toLowerCase();
+
+	let peerId = randomString({ length: 8 }).toLowerCase();
 
 	let roomId = urlParser.query.roomId;
 
@@ -153,6 +154,8 @@ async function run()
 	{
 		displayNameSet = false;
 		displayName = store.getState().auth.user.name;
+		peerId = store.getState().auth.id;
+
 	}
 	// Otherwise pick a random name and mark as "not set".
 	else

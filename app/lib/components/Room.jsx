@@ -16,6 +16,9 @@ import Notifications from './Notifications';
 import NetworkThrottle from './NetworkThrottle';
 import { Link } from 'react-router-dom';
 
+import Logger from '../Logger';
+const logger = new Logger('Room');
+
 class Room extends React.Component
 {
 	render()
@@ -157,9 +160,19 @@ class Room extends React.Component
 
 	componentDidMount()
 	{
-		const { roomClient }	= this.props;
-		const { roomName } = ((this.props.location || {}).state || {});
+		const { roomClient, userId }	= this.props;
+		const { roomName, roomId } = ((this.props.location || {}).state || {});
 
+		const peerId = userId;
+		
+		logger.debug({ roomName, peerId, roomId });
+
+		if (!peerId || !roomId)
+		{
+			this.props.history.push('/home');
+		}
+
+		roomClient.resetProtooUrl({ roomId, peerId }); // change to url to the new urls
 		roomClient.join(roomName);
 	}
 }
@@ -171,7 +184,9 @@ Room.propTypes =
 	me              : appPropTypes.Me.isRequired,
 	amActiveSpeaker : PropTypes.bool.isRequired,
 	onRoomLinkCopy  : PropTypes.func.isRequired,
-	location        : PropTypes.any
+	location        : PropTypes.any,
+	history        	: PropTypes.any,
+	userId         	: PropTypes.string
 };
 
 const mapStateToProps = (state) =>
@@ -179,7 +194,8 @@ const mapStateToProps = (state) =>
 	return {
 		room            : state.room,
 		me              : state.me,
-		amActiveSpeaker : state.me.id === state.room.activeSpeakerId
+		amActiveSpeaker : state.me.id === state.room.activeSpeakerId,
+		userId         	: (state.auth.user || {}).id
 	};
 };
 

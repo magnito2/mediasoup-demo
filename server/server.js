@@ -25,6 +25,7 @@ const interactiveClient = require('./lib/interactiveClient');
 
 const passport = require('passport');
 const users = require('./routes/api/users');
+const User = require('./models/User');
 
 const mongoose = require('mongoose');
 
@@ -464,33 +465,74 @@ async function runProtooWebSocketServer()
 			return;
 		}
 
-		logger.info(
-			'protoo connection request [roomId:%s, peerId:%s, address:%s, origin:%s]',
-			roomId,
-			peerId,
-			info.socket.remoteAddress,
-			info.origin
-		);
+		if (!peerId.match(/^[0-9a-fA-F]{24}$/))
+		{
+			logger.error(`Invalid peer Id ${peerId}`);
+			reject(400, `Invalid peer Id ${peerId}`);
 
-		// Serialize this code into the queue to avoid that two peers connecting at
-		// the same time with the same roomId create two separate rooms with same
-		// roomId.
-		queue
-			.push(async () =>
+			return;
+		}
+
+		User.findById(new mongoose.Types.ObjectId(peerId)).then((user) =>
+		{
+			if (!user)
 			{
-				const room = await getOrCreateRoom({ roomId, forceH264, forceVP9, peerId });
+				logger.error('User not found');
+				reject(400, 'User not found');
 
-				// Accept the protoo WebSocket connection.
-				const protooWebSocketTransport = accept();
+				return;
+			}
 
-				room.handleProtooConnection({ peerId, protooWebSocketTransport });
-			})
-			.catch((error) =>
-			{
-				logger.error('room creation or room joining failed:%o', error);
+			// check if user is a teacher
+			logger.info('%o', user);
+			logger.info(`User is ${user.name} of type ${user.userType}`);
 
-				reject(error);
-			});
+			const isTeacher = user.userType === 'teacher';
+
+			logger.info(
+				'protoo connection request [roomId:%s, peerId:%s, address:%s, origin:%s, isTeacher:%s]',
+				roomId,
+				peerId,
+				info.socket.remoteAddress,
+				info.origin,
+				isTeacher
+			);
+
+			// Serialize this code into the queue to avoid that two peers connecting at
+			// the same time with the same roomId create two separate rooms with same
+			// roomId.
+			queue
+				.push(async () =>
+				{
+					const room = await getOrCreateRoom(
+						{ roomId,
+							forceH264,
+							forceVP9,
+							peerId,
+							isTeacher
+						});
+
+					if (!room)
+					{
+						reject(400, 'Unable to create a room, are you a teacher?');
+
+						return;
+					}
+
+					// Accept the protoo WebSocket connection.
+					const protooWebSocketTransport = accept();
+
+					room.handleProtooConnection({ peerId, protooWebSocketTransport });
+				})
+				.catch((error) =>
+				{
+					logger.error('room creation or room joining failed:%o', error);
+
+					reject(error);
+				});
+
+		});
+		
 	});
 }
 
@@ -514,7 +556,8 @@ async function getOrCreateRoom({
 	roomId,
 	forceH264 = false,
 	forceVP9 = false,
-	peerId
+	peerId,
+	isTeacher
 })
 {
 	let room = rooms.get(roomId);
@@ -522,6 +565,10 @@ async function getOrCreateRoom({
 	// If the Room does not exist create a new one.
 	if (!room)
 	{
+		if (!isTeacher)
+		{
+			return null;
+		}
 		logger.info('creating a new Room [roomId:%s]', roomId);
 
 		const mediasoupWorker = getMediasoupWorker();
