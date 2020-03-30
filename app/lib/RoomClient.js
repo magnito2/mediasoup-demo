@@ -604,9 +604,13 @@ export default class RoomClient
 
 		this._protoo.on('notification', (notification) =>
 		{
-			logger.debug(
-				'proto "notification" event [method:%s, data:%o]',
-				notification.method, notification.data);
+
+			if (notification.method !== 'activeSpeaker')
+			{
+				logger.debug(
+					'proto "notification" event [method:%s, data:%o]',
+					notification.method, notification.data);
+			}
 
 			switch (notification.method)
 			{
@@ -818,6 +822,16 @@ export default class RoomClient
 							type : 'error',
 							text : 'Master has Cancelled your request'
 						}));
+					break;
+				}
+
+				case 'generalNotification':
+				{
+					const { type, text } = notification.data;
+
+					store.dispatch(requestActions.notify(
+						{ type, text })
+					);
 					break;
 				}
 

@@ -1684,6 +1684,30 @@ class Room extends EventEmitter
 					temporalLayer : layers ? layers.temporalLayer : null
 				})
 				.catch(() => {});
+
+			// check if this is caused by bandwidth issues by checking if consumer.paused
+			// and consumer.producerPaused are both false.
+			if (!layers)
+			{
+				if (!consumer.paused && !consumer.producerPaused)
+				{
+					logger.info('possible bandwidth problems experienced');
+
+					consumerPeer.notify(
+						'generalNotification',
+						{
+							type : 'error',
+							text : 'A possible problem with the bandwidth. check your connection'
+						})
+						.catch(() => {});
+				}
+				else
+				{
+					logger.info(
+						'consumer.paused:%s, consumer.producerPaused:%s',
+						consumer.paused, consumer.producerPaused);
+				}
+			}
 		});
 
 		// NOTE: For testing.
