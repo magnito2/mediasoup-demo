@@ -34,7 +34,8 @@ class Room extends EventEmitter
 		roomId,
 		forceH264 = false,
 		forceVP9 = false,
-		masterPeerId
+		masterPeerId,
+		masterPeerName
 	})
 	{
 		logger.info(
@@ -85,7 +86,8 @@ class Room extends EventEmitter
 			mediasoupRouter,
 			audioLevelObserver,
 			bot,
-			masterPeerId
+			masterPeerId,
+			masterPeerName
 		});
 	}
 
@@ -96,7 +98,8 @@ class Room extends EventEmitter
 			mediasoupRouter,
 			audioLevelObserver,
 			bot,
-			masterPeerId
+			masterPeerId,
+			masterPeerName
 		}
 	)
 	{
@@ -159,6 +162,9 @@ class Room extends EventEmitter
 		// masterPeerId, the peer that created the room, to give admin rights to him
 		this._masterPeerId = masterPeerId;
 
+		// masterPeerName, name of peer that created the room.
+		this._masterPeerName = masterPeerName;
+
 	}
 
 	/**
@@ -215,10 +221,28 @@ class Room extends EventEmitter
 		if (existingPeer)
 		{
 			logger.warn(
-				'handleProtooConnection() | there is already a protoo Peer with same peerId, closing it [peerId:%s]',
+				'handleProtooConnection() | there is already a protoo Peer with same peerId,[peerId:%s]',
 				peerId);
 
-			existingPeer.close();
+			try
+			{
+				const newPeer = this._protooRoom.createPeer(`${peerId}_temp`, protooWebSocketTransport);
+
+				newPeer.notify('generalNotification', {
+					type : 'error',
+					text : 'There is another live session with the same id.'
+				})
+					.catch(() => {});
+
+				newPeer.close();
+			}
+			catch (error)
+			{
+				logger.error('protooRoom.createPeer() failed:%o', error);
+			}
+
+			// existingPeer.close();
+			return;
 		}
 
 		let peer;
@@ -765,7 +789,7 @@ class Room extends EventEmitter
 				if (roomName && peer.id === this._masterPeerId)
 				{
 					this._roomName = roomName;
-					logger.error(`Setting room Name, ${roomName}`);
+					logger.debug(`Setting room Name, ${roomName}`);
 				}
 
 				// Store client data into the protoo Peer data object.

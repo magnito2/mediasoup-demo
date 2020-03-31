@@ -2653,4 +2653,12 @@ export default class RoomClient
 				}));
 		}
 	}
+
+	async resetProtooUrl({ roomId, peerId, forceH264, forceVP9 })
+	{
+		if (roomId && peerId)
+		{
+			this._protooUrl = getProtooUrl({ roomId, peerId, forceH264, forceVP9 });
+		}
+	}
 }

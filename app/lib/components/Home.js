@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { roomsGetAll } from '../redux/roomsActions';
-import classnames from 'classnames';
 import { Link } from 'react-router-dom';
 
+import PropTypes from 'prop-types';
 import deepEqual from 'deep-equal-x';
 import randomString from 'random-string';
 import { isEmpty } from '../utils';
@@ -51,12 +51,13 @@ class Home extends Component
 		{
 			// this.props.changeName(this.state.roomName);
 			const roomId = randomString({ length: 8 }).toLowerCase();
+			const { userId } = this.props;
 
 			this.props.history.push(
 				{
 					pathname : '/room',
 					search   : `?roomId=${roomId}`,
-					state    : { roomName: this.state.roomName }
+					state    : { roomName: this.state.roomName, peerId: userId, roomId }
 				});
 		}
 	}
@@ -64,6 +65,7 @@ class Home extends Component
 	render()
 	{
 		const { rooms } = this.state;
+		const { userId, userType } = this.props;
 
 		return (
 			<div data-component='Home'>
@@ -84,32 +86,58 @@ class Home extends Component
 							{
 								rooms.map((room, index) =>
 								{
-									return <li key={index}><a href={`/room?roomId=${room.id}`}>{room.roomName || room.id} by {room.displayName}</a></li>;
+									return (
+										<li
+											key={index}
+											className={room.masterOnline ? 'online' : 'offline'}
+										>
+											<Link to={{
+												pathname : '/room',
+												state    : {
+													roomId : room.id,
+													peerId : userId
+												}
+											}}
+											>{room.roomName || room.id} by {room.displayName} ({room.masterOnline ? 'online' : 'offline'})
+											</Link>
+										</li>
+									);
 								})
 							}
 						</ul>
 					</div>
-					<div className='new-room'>
-						<h3>Create a room</h3>
-						<form className='create-form' noValidate onSubmit={this.handleOnSubmit}>
-							<input
-								onChange={this.handleOnChange}
-								id='roomName'
-								type='text'
-								placeholder='name of class'
-								maxLength='40'
-							/>
-							<button>Create</button>
-						</form>
-					</div>
+					{userType === 'teacher' &&
+						<div className='new-room'>
+							<h3>Create a room</h3>
+							<form className='create-form' noValidate onSubmit={this.handleOnSubmit}>
+								<input
+									onChange={this.handleOnChange}
+									id='roomName'
+									type='text'
+									placeholder='name of class'
+									maxLength='40'
+								/>
+								<button>Create</button>
+							</form>
+						</div>}
 				</div>
 			</div>
 		);
 	}
 }
 
+Home.propTypes =
+{
+	userId      : PropTypes.string.isRequired,
+	history     : PropTypes.any.isRequired,
+	roomsGetAll : PropTypes.func.isRequired,
+	userType    : PropTypes.string.isRequired
+};
+
 const mapStateToProps = (state) => ({
-	rooms : state.rooms
+	rooms    : state.rooms,
+	userId  	: (state.auth.user || {}).id,
+	userType : (state.auth.user || {}).userType
 });
 
 export default connect(

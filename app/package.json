@@ -1,9 +1,9 @@
 {
-  "name": "mediasoup-demo-app",
-  "version": "3.0.0",
+  "name": "technology-quest",
+  "version": "1.0.0",
   "private": true,
-  "description": "mediasoup demo app",
-  "author": "Iñaki Baz Castillo <ibc@aliax.net>",
+  "description": "Technology Quest",
+  "author": "Magnus Otwani <magnusotwani@gmail.com>",
   "license": "All Rights Reserved",
   "main": "lib/index.jsx",
   "scripts": {
@@ -20,7 +20,6 @@
     "debug": "^4.1.1",
     "deep-equal-x": "^2.1.2",
     "domready": "^1.0.8",
-    "face-api.js": "^0.21.0",
     "hark": "^1.2.3",
     "http-proxy-middleware": "^1.0.0",
     "is-empty": "^1.2.0",

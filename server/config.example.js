@@ -31,7 +31,7 @@ module.exports =
 	mediasoup :
 	{
 		// Number of mediasoup workers to launch.
-		numWorkers : Object.keys(os.cpus()).length,
+		numWorkers     : Object.keys(os.cpus()).length,
 		// mediasoup WorkerSettings.
 		// See https://mediasoup.org/documentation/v3/mediasoup/api/#WorkerSettings
 		workerSettings :
@@ -143,9 +143,9 @@ module.exports =
 			maxSctpMessageSize : 262144
 		}
 	},
-  database :
+	database :
   {
-    mongodb_uri : process.env.MONGODB_URI || "mongodb://localhost/mediasoup",
-    secretOrKey : process.env.SECRET_KEY || "pleaseDoSetUpSomeReallySecretKey"
+  	mongodb_uri : process.env.MONGODB_URI || 'mongodb://localhost/mediasoup',
+  	secretOrKey : process.env.SECRET_KEY || 'pleaseDoSetUpSomeReallySecretKey'
   }
 };
