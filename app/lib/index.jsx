@@ -6,7 +6,6 @@ import { Provider } from 'react-redux';
 
 // import { createLogger as createReduxLogger } from 'redux-logger';
 import randomString from 'random-string';
-import * as faceapi from 'face-api.js';
 import Logger from './Logger';
 import * as utils from './utils';
 import randomName from './randomName';
@@ -15,34 +14,12 @@ import RoomClient from './RoomClient';
 import RoomContext from './RoomContext';
 import * as cookiesManager from './cookiesManager';
 import * as stateActions from './redux/stateActions';
-// import reducers from './redux/reducers';
+
 import App from './components/App';
 
 const logger = new Logger();
-// const reduxMiddlewares = [ thunk ];
-
-// if (process.env.NODE_ENV === 'development')
-// {
-// 	const reduxLogger = createReduxLogger(
-// 		{
-// 			duration  : true,
-// 			timestamp : false,
-// 			level     : 'log',
-// 			logErrors : true
-// 		});
-
-// 	reduxMiddlewares.push(reduxLogger);
-// }
 
 let roomClient;
-
-/* export const store = createReduxStore(
-	reducers,
-	undefined,
-	reduxCompose(applyReduxMiddleware(...reduxMiddlewares),
-		window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
-	)
-);*/
 
 import store from './redux/store';
 
@@ -65,8 +42,6 @@ async function run()
 
 	const urlParser = new UrlParse(window.location.href, true);
 
-	let peerId = randomString({ length: 8 }).toLowerCase();
-
 	let roomId = urlParser.query.roomId;
 
 	let displayName =
@@ -82,13 +57,8 @@ async function run()
 	const svc = urlParser.query.svc;
 	const datachannel = urlParser.query.datachannel !== 'false';
 	const info = urlParser.query.info === 'true';
-	const faceDetection = urlParser.query.faceDetection === 'true';
 	const externalVideo = urlParser.query.externalVideo === 'true';
 	const throttleSecret = urlParser.query.throttleSecret;
-
-	// Enable face detection on demand.
-	if (faceDetection)
-		await faceapi.loadTinyFaceDetectorModel('/resources/face-detector-models');
 
 	if (info)
 	{
@@ -130,7 +100,6 @@ async function run()
 			case 'svc':
 			case 'datachannel':
 			case 'info':
-			case 'faceDetection':
 			case 'externalVideo':
 			case 'throttleSecret':
 				break;
@@ -144,6 +113,8 @@ async function run()
 
 	let displayNameSet;
 
+	let peerId;
+
 	// If displayName was provided via URL or Cookie, we are done.
 	if (displayName)
 	{
@@ -152,9 +123,9 @@ async function run()
 	// Otherwise check if user is logged in with a username
 	else if (store.getState().auth && store.getState().auth.user)
 	{
-		displayNameSet = false;
+		displayNameSet = true;
 		displayName = store.getState().auth.user.name;
-		peerId = store.getState().auth.id;
+		peerId = store.getState().auth.user.id;
 
 	}
 	// Otherwise pick a random name and mark as "not set".
@@ -169,9 +140,6 @@ async function run()
 
 	store.dispatch(
 		stateActions.setRoomUrl(roomUrl));
-
-	store.dispatch(
-		stateActions.setRoomFaceDetection(faceDetection));
 
 	store.dispatch(
 		stateActions.setMe({ peerId, displayName, displayNameSet, device }));
@@ -196,8 +164,8 @@ async function run()
 		});
 
 	// NOTE: For debugging.
-	window.CLIENT = roomClient; // eslint-disable-line require-atomic-updates
 	window.CC = roomClient; // eslint-disable-line require-atomic-updates
+	window.CLIENT = roomClient;
 
 	render(
 		<Provider store={store}>
@@ -205,7 +173,7 @@ async function run()
 				<App/>
 			</RoomContext.Provider>
 		</Provider>,
-		document.getElementById('mediasoup-demo-app-container')
+		document.getElementById('app-container')
 	);
 }
 
