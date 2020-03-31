@@ -4,7 +4,6 @@ const initialState =
 	state           : 'new', // new/connecting/connected/disconnected/closed,
 	activeSpeakerId : null,
 	statsPeerId     : null,
-	faceDetection   : false,
 	masterPeerId   	: null,
 	roomName        : null
 };
@@ -45,13 +44,6 @@ const room = (state = initialState, action) =>
 				return { ...state, statsPeerId: null };
 
 			return { ...state, statsPeerId: peerId };
-		}
-
-		case 'SET_FACE_DETECTION':
-		{
-			const flag = action.payload;
-
-			return { ...state, faceDetection: flag };
 		}
 
 		case 'REMOVE_PEER':
