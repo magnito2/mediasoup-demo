@@ -91,7 +91,8 @@ export default class PeerView extends React.Component
 			onRejectQuestion,
 			onEndQuestion,
 			question,
-			myQuestion
+			myQuestion,
+			inDevelopment
 		} = this.props;
 
 		const {
@@ -114,15 +115,17 @@ export default class PeerView extends React.Component
 							delayShow={100}
 							delayHide={50}
 						/>
-						<div
-							className={classnames('icon', 'info', { on: showInfo })}
-							onClick={() => this.setState({ showInfo: !showInfo })}
-						/>
+						{inDevelopment && <>
+							<div
+								className={classnames('icon', 'info', { on: showInfo })}
+								onClick={() => this.setState({ showInfo: !showInfo })}
+							/>
 
-						<div
-							className={classnames('icon', 'stats')}
-							onClick={() => onStatsClick(peer.id)}
-						/>
+							<div
+								className={classnames('icon', 'stats')}
+								onClick={() => onStatsClick(peer.id)}
+							/>
+						</>}
 
 						<If condition={peer.isMaster && !isMe && isEmpty(myQuestion)}>
 							<div
@@ -852,5 +855,6 @@ PeerView.propTypes =
 	onRejectQuestion              	: PropTypes.func.isRequired,
 	onEndQuestion                 	: PropTypes.func.isRequired,
 	question                       : PropTypes.any,
-	myQuestion                    	: PropTypes.any
+	myQuestion                    	: PropTypes.any,
+	inDevelopment                  : PropTypes.bool
 };
