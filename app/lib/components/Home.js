@@ -65,7 +65,7 @@ class Home extends Component
 	render()
 	{
 		const { rooms } = this.state;
-		const { userId } = this.props;
+		const { userId, userType } = this.props;
 
 		return (
 			<div data-component='Home'>
@@ -86,32 +86,40 @@ class Home extends Component
 							{
 								rooms.map((room, index) =>
 								{
-									return (<li key={index}>
-										<Link to={{
-											pathname : '/room',
-											state    : {
-												roomId : room.id,
-												peerId : userId
-											}
-										}}
-										>{room.roomName || room.id} by {room.displayName}</Link></li>);
+									return (
+										<li
+											key={index}
+											className={room.masterOnline ? 'online' : 'offline'}
+										>
+											<Link to={{
+												pathname : '/room',
+												state    : {
+													roomId : room.id,
+													peerId : userId
+												}
+											}}
+											>{room.roomName || room.id} by {room.displayName} ({room.masterOnline ? 'online' : 'offline'})
+											</Link>
+										</li>
+									);
 								})
 							}
 						</ul>
 					</div>
-					<div className='new-room'>
-						<h3>Create a room</h3>
-						<form className='create-form' noValidate onSubmit={this.handleOnSubmit}>
-							<input
-								onChange={this.handleOnChange}
-								id='roomName'
-								type='text'
-								placeholder='name of class'
-								maxLength='40'
-							/>
-							<button>Create</button>
-						</form>
-					</div>
+					{userType === 'teacher' &&
+						<div className='new-room'>
+							<h3>Create a room</h3>
+							<form className='create-form' noValidate onSubmit={this.handleOnSubmit}>
+								<input
+									onChange={this.handleOnChange}
+									id='roomName'
+									type='text'
+									placeholder='name of class'
+									maxLength='40'
+								/>
+								<button>Create</button>
+							</form>
+						</div>}
 				</div>
 			</div>
 		);
@@ -122,12 +130,14 @@ Home.propTypes =
 {
 	userId      : PropTypes.string.isRequired,
 	history     : PropTypes.any.isRequired,
-	roomsGetAll : PropTypes.func.isRequired
+	roomsGetAll : PropTypes.func.isRequired,
+	userType    : PropTypes.string.isRequired
 };
 
 const mapStateToProps = (state) => ({
-	rooms  : state.rooms,
-	userId	: (state.auth.user || {}).id
+	rooms    : state.rooms,
+	userId  	: (state.auth.user || {}).id,
+	userType : (state.auth.user || {}).userType
 });
 
 export default connect(
