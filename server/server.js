@@ -365,10 +365,12 @@ async function createExpressApp()
 			logger.info(`room name is ${roomValue._roomName}`);
 
 			return {
-				id          : roomKey,
-				displayName :
-					roomValue._protooRoom.getPeer(roomValue._masterPeerId).data.displayName,
-				roomName : roomValue._roomName
+				id           : roomKey,
+				displayName  : roomValue._masterPeerName,
+				masterOnline :
+					roomValue._protooRoom.getPeer(roomValue._masterPeerId) !== undefined,
+				roomName     : roomValue._roomName,
+				masterPeerId : roomValue._masterPeerId
 			};
 		});
 
@@ -488,6 +490,7 @@ async function runProtooWebSocketServer()
 			logger.info(`User is ${user.name} of type ${user.userType}`);
 
 			const isTeacher = user.userType === 'teacher';
+			const peerName = user.name;
 
 			logger.info(
 				'protoo connection request [roomId:%s, peerId:%s, address:%s, origin:%s, isTeacher:%s]',
@@ -509,6 +512,7 @@ async function runProtooWebSocketServer()
 							forceH264,
 							forceVP9,
 							peerId,
+							peerName,
 							isTeacher
 						});
 
@@ -532,7 +536,7 @@ async function runProtooWebSocketServer()
 				});
 
 		});
-		
+
 	});
 }
 
@@ -557,6 +561,7 @@ async function getOrCreateRoom({
 	forceH264 = false,
 	forceVP9 = false,
 	peerId,
+	peerName,
 	isTeacher
 })
 {
@@ -578,7 +583,8 @@ async function getOrCreateRoom({
 			roomId,
 			forceH264,
 			forceVP9,
-			masterPeerId : peerId
+			masterPeerId   : peerId,
+			masterPeerName : peerName
 		});
 
 		rooms.set(roomId, room);
