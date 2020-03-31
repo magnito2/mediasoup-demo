@@ -164,12 +164,14 @@ class Room extends React.Component
 		const { roomName, roomId } = ((this.props.location || {}).state || {});
 
 		const peerId = userId;
-		
+
 		logger.debug({ roomName, peerId, roomId });
 
 		if (!peerId || !roomId)
 		{
 			this.props.history.push('/home');
+
+			return;
 		}
 
 		roomClient.resetProtooUrl({ roomId, peerId }); // change to url to the new urls
