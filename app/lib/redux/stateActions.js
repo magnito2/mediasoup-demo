@@ -32,14 +32,6 @@ export const setRoomStatsPeerId = (peerId) =>
 	};
 };
 
-export const setRoomFaceDetection = (flag) =>
-{
-	return {
-		type    : 'SET_FACE_DETECTION',
-		payload : flag
-	};
-};
-
 export const setRoomMasterPeerId = (peerId) =>
 {
 	return {
