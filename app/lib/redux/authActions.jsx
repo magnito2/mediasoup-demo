@@ -5,8 +5,13 @@ import {
 	GET_ERRORS,
 	SET_CURRENT_USER,
 	USER_LOADING,
-	STOP_LOADING
+	STOP_LOADING,
+	CLEAR_ERROR,
+	CLEAR_ERRORS
 } from './types';
+
+import Logger from '../Logger';
+const logger = new Logger('Auth-Actions');
 
 // Set logged in user
 
@@ -31,10 +36,14 @@ export const registerUser = (userData, history) => (dispatch) =>
 			});
 		}) // re-direct to login on successful register
 		.catch((err) =>
+		{
+			logger.debug(err);
+
 			dispatch({
 				type    : GET_ERRORS,
 				payload : err.response.data
-			})
+			});
+		}
 		);
 };
 
@@ -84,4 +93,21 @@ export const logoutUser = () => (dispatch) =>
 	setAuthToken(false);
 	// Set current user to empty object {} which will set isAuthenticated to false
 	dispatch(setCurrentUser({}));
+};
+
+// Clear errors
+export const clearError = (errorKey) =>
+{
+	return {
+		type    : CLEAR_ERROR,
+		payload : errorKey
+	};
+};
+
+// Clear errors
+export const clearErrors = () =>
+{
+	return {
+		type : CLEAR_ERRORS
+	};
 };
