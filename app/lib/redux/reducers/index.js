@@ -11,6 +11,7 @@ import authReducer from './authReducer';
 import errorsReducer from './errorsReducer';
 import questions from './questions';
 import rooms from './rooms';
+import admin from './adminReducer';
 
 const reducers = combineReducers(
 	{
@@ -25,7 +26,8 @@ const reducers = combineReducers(
 		auth   : authReducer,
 		errors : errorsReducer,
 		questions,
-		rooms
+		rooms,
+		admin
 	});
 
 export default reducers;
