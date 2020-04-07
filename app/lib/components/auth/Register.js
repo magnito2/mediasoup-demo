@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Link, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { registerUser, setUserLoading } from '../../redux/authActions';
+import { registerUser, setUserLoading, clearError, clearErrors } from '../../redux/authActions';
 import classnames from 'classnames';
 import Logger from '../../Logger';
 
@@ -14,13 +14,13 @@ class Register extends Component
 	{
 		super();
 		this.state = {
-			name         : '',
-			email        : '',
-			userType    	: '',
-			centreNumber : '',
-			password     : '',
-			password2    : '',
-			errors       : {}
+			name            : '',
+			email           : '',
+			userType       	: 'student',
+			admissionNumber : '',
+			password        : '',
+			password2       : '',
+			errors          : {}
 		};
 		this.handleOnChange = this.handleOnChange.bind(this);
 		this.handleOnSubmit = this.handleOnSubmit.bind(this);
@@ -39,23 +39,49 @@ class Register extends Component
 	handleOnChange(e)
 	{
 		this.setState({ [e.target.id]: e.target.value });
+		if (e.target.id === 'userType')
+		{
+			if (e.target.value === 'teacher')
+			{
+				this.setState({ admissionNumber: '' });
+			}
+			else if (e.target.value === 'student')
+			{
+				this.setState({ email: '' });
+			}
+		}
+		if (this.state.errors)
+		{
+			const patt = new RegExp(e.target.id);
+			const keys = Object.keys(this.state.errors).filter((error) => patt.test(error));
+
+			if (keys.length)
+			{
+				this.props.onClearError(keys[0]);
+			}
+		}
+	}
+
+	componentWillUnmount()
+	{
+		this.props.onClearErrors();
 	}
 
 	handleOnSubmit(e)
 	{
 		e.preventDefault();
 		const newUser = {
-			name         : this.state.name,
-			email        : this.state.email,
-			userType    	: this.state.userType,
-			centreNumber : this.state.centreNumber,
-			password     : this.state.password,
-			password2    : this.state.password2
+			name            : this.state.name,
+			email           : this.state.email,
+			userType       	: this.state.userType,
+			admissionNumber : this.state.admissionNumber,
+			password        : this.state.password,
+			password2       : this.state.password2
 		};
 
-		logger.debug(newUser);
-		this.props.registerUser(newUser, this.props.history);
-		this.props.setUserLoading();
+		// logger.debug(newUser);
+		this.props.onRegisterUser(newUser, this.props.history);
+		this.props.onUserLoading();
 	}
 
 	render()
@@ -71,6 +97,9 @@ class Register extends Component
 							<p className='message'><Link to='/' className='icon-left'>Go Home</Link></p>
 						</div>
 						<form className='login-form' noValidate onSubmit={this.handleOnSubmit}>
+							<span className='red-text'>
+								{errors.generalError}
+							</span>
 							<input
 								onChange={this.handleOnChange}
 								value={this.state.name}
@@ -86,27 +115,30 @@ class Register extends Component
 								{errors.name}
 							</span>
 							<select id='userType' value={this.state.userType} onChange={this.handleOnChange}>
-								<option value=''>User Type</option>
 								<option value='student'>Student</option>
 								<option value='teacher'>Teacher</option>
 							</select>
 							<span className='red-text'>
 								{errors.userType}
 							</span>
-							<input
-								onChange={this.handleOnChange}
-								value={this.state.centreNumber}
-								error={errors.centreNumber}
-								id='centreNumber'
-								type='text'
-								className={classnames('', {
-									invalid : errors.centreNumber
-								})}
-								placeholder='Centre Number'
-							/>
-							<span className='red-text'>
-								{errors.centreNumber}
-							</span>
+							{this.state.userType === 'student' &&
+								<>
+									<input
+										onChange={this.handleOnChange}
+										value={this.state.admissionNumber}
+										error={errors.admissionNumber}
+										id='admissionNumber'
+										type='text'
+										className={classnames('', {
+											invalid : errors.admissionNumber
+										})}
+										placeholder='Admission Number'
+									/>
+									<span className='red-text'>
+										{errors.admissionNumber}
+									</span>
+								</>
+							}
 							<input
 								onChange={this.handleOnChange}
 								value={this.state.email}
@@ -116,7 +148,7 @@ class Register extends Component
 								className={classnames('', {
 									invalid : errors.email
 								})}
-								placeholder='Email'
+								placeholder={`Email ${this.state.userType === 'student'? ' *Optional': ''}`}
 							/>
 							<span className='red-text'>
 								{errors.email}
@@ -161,9 +193,12 @@ class Register extends Component
 }
 
 Register.PropTypes = {
-	registerUser : PropTypes.func.isRequired,
-	auth         : PropTypes.object.isRequired,
-	errors       : PropTypes.object.isRequired
+	onRegisterUser : PropTypes.func.isRequired,
+	onUserLoading  : PropTypes.func,
+	auth           : PropTypes.object.isRequired,
+	errors         : PropTypes.object.isRequired,
+	onClearError   : PropTypes.func,
+	onClearErrors  : PropTypes.func
 };
 
 const mapStateToProps = (state) => ({
@@ -171,7 +206,29 @@ const mapStateToProps = (state) => ({
 	errors : state.errors
 });
 
+const mapDispatchToProps = (dispatch) =>
+{
+	return {
+		onRegisterUser : (userData, history) =>
+		{
+			dispatch(registerUser(userData, history));
+		},
+		onUserLoading : () =>
+		{
+			dispatch(setUserLoading());
+		},
+		onClearError : (errorKey) =>
+		{
+			dispatch(clearError(errorKey));
+		},
+		onClearErrors : () =>
+		{
+			dispatch(clearErrors());
+		}
+	};
+};
+
 export default connect(
 	mapStateToProps,
-	{ registerUser, setUserLoading }
+	mapDispatchToProps
 )(withRouter(Register));
