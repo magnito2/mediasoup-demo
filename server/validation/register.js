@@ -8,7 +8,7 @@ module.exports = function validateRegisterInput(data)
 
 	data.name = !isEmpty(data.name) ? data.name : '';
 	data.email = !isEmpty(data.email) ? data.email : '';
-	data.centreNumber = !isEmpty(data.centreNumber) ? data.centreNumber : '';
+	data.admissionNumber = !isEmpty(data.admissionNumber) ? data.admissionNumber : '';
 	data.userType = !isEmpty(data.userType) ? data.userType : '';
 	data.password = !isEmpty(data.password) ? data.password : '';
 	data.password2 = !isEmpty(data.password2) ? data.password2 : '';
@@ -17,28 +17,34 @@ module.exports = function validateRegisterInput(data)
 	{
 		errors.name = 'Name field is required';
 	}
+	// userType checks
+	if (Validator.isEmpty(data.userType))
+	{
+		errors.userType = 'User Type field is required';
+	}
 	// Email checks
 	if (Validator.isEmpty(data.email))
 	{
-		errors.email = 'Email field is required';
+		if (data.userType === 'teacher') // A teacher must provide an email address, no admission number
+		{
+			errors.email = 'Email field is required';
+		}
 	}
 	else if (!Validator.isEmail(data.email))
 	{
 		errors.email = 'Email is invalid';
 	}
-	// centreNumber checks
-	if (Validator.isEmpty(data.centreNumber))
+	// admissionNumber checks
+	if (Validator.isEmpty(data.admissionNumber))
 	{
-		errors.centreNumber = 'Centre Number field is required';
+		if (data.userType === 'student') // A teacher must provide an email address, no admission number
+		{
+			errors.admissionNumber = 'Admission Number field is required for students';
+		}
 	}
-	else if (!Validator.isInt(data.centreNumber, { min: 0, max: 100000000 }))
+	else if (!Validator.isInt(data.admissionNumber, { min: 0, max: 100000000 }))
 	{
-		errors.centreNumber = 'Invalid Centre Number';
-	}
-	// userType checks
-	if (Validator.isEmpty(data.userType))
-	{
-		errors.userType = 'User Type field is required';
+		errors.admissionNumber = 'Invalid Admission Number';
 	}
 	// Password checks
 	if (Validator.isEmpty(data.password))
