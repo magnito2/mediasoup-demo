@@ -2,7 +2,8 @@ import {
 	SET_CURRENT_USER,
 	USER_LOADING,
 	GET_ERRORS,
-	STOP_LOADING
+	STOP_LOADING,
+	CLEAR_ERRORS
 } from '../types';
 
 const isEmpty = require('is-empty');
