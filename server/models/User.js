@@ -1,15 +1,20 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+// Logging
+const Logger = require('../lib/Logger');
+
+const logger = new Logger('users-model');
+
 // create Schema
 const UserSchema = new Schema({
 	name : {
 		type     : String,
 		required : true
 	},
-	centreNumber : {
+	admissionNumber : {
 		type     : String,
-		required : true
+		required : false
 	},
 	userType : {
 		type     : String,
@@ -17,7 +22,7 @@ const UserSchema = new Schema({
 	},
 	email : {
 		type     : String,
-		required : true
+		required : false
 	},
 	password : {
 		type     : String,
@@ -26,6 +31,19 @@ const UserSchema = new Schema({
 	date : {
 		type    : Date,
 		default : Date.now
+	}
+});
+
+UserSchema.pre('validate', function(next)
+{
+
+	if ('email' in this || 'admissionNumber' in this)
+	{
+		next();
+	}
+	else
+	{
+		next(new Error('Provide either Email or Admission Number'));
 	}
 });
 
