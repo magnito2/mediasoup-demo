@@ -25,6 +25,7 @@ const interactiveClient = require('./lib/interactiveClient');
 
 const passport = require('passport');
 const users = require('./routes/api/users');
+const adminUsersRoute = require('./routes/api/admin/users');
 const User = require('./models/User');
 
 const mongoose = require('mongoose');
@@ -357,6 +358,9 @@ async function createExpressApp()
 	// require('./middleware/passport')(passport);
 	// Routes
 	expressApp.use('/api/users', users);
+
+	// Admin, not yet locked down but will be
+	expressApp.use('/api/admin/users', adminUsersRoute);
 
 	expressApp.get('/api/rooms', (req, res) =>
 	{
