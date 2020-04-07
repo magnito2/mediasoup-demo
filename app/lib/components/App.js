@@ -11,6 +11,7 @@ import Logout from './auth/Logout';
 import Room from './Room';
 import Landing from './Landing';
 import Home from './Home';
+import Admin from './admin/Admin';
 import PrivateRoute from './auth/PrivateRoute';
 
 // Check for token to keep user logged in
@@ -51,6 +52,7 @@ const App = () =>
 				<Route exact path='/login' component={Login} />
 				<Switch>
 					<PrivateRoute exact path='/home' component={Home}/>
+					<PrivateRoute exact path='/admin' component={Admin}/>
 					<PrivateRoute exact path='/room' component={Room}/>
 					<PrivateRoute exact path='/logout' component={Logout}/>
 				</Switch>
