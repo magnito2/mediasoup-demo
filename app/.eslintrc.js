@@ -10,7 +10,8 @@ module.exports =
 	[
 		'import',
 		'react',
-		'jsx-control-statements'
+		'jsx-control-statements',
+		'babel'
 	],
 	extends:
 	[
@@ -123,11 +124,12 @@ module.exports =
 		'no-implicit-globals': 2,
 		'no-inner-declarations': 2,
 		'no-invalid-regexp': 2,
-		'no-invalid-this': 2,
+		// 'no-invalid-this': 2,
+		'babel/no-invalid-this': 1,
 		'no-irregular-whitespace': 2,
 		'no-lonely-if': 2,
 		'no-mixed-operators': 2,
-		'no-mixed-spaces-and-tabs': 2,
+		'no-mixed-spaces-and-tabs': [2, "smart-tabs"],
 		'no-multi-spaces': 2,
 		'no-multi-str': 2,
 		'no-multiple-empty-lines': [ 2, { max: 1, maxEOF: 0, maxBOF: 0 } ],
