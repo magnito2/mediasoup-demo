@@ -8,6 +8,7 @@ import deepEqual from 'deep-equal-x';
 import PropTypes from 'prop-types';
 
 import EditModal from './edit-modal';
+import Pagination from '../Paginator';
 
 import Logger from '../../Logger';
 const logger = new Logger('Admin');
@@ -18,8 +19,16 @@ class Admin extends Component
 	{
 		super();
 		this.state = {
-			users    : [],
-			editUser : undefined
+			users          : [],
+			editUser       : undefined,
+			userTypeFilter : '',
+			usersFilter    : '',
+			pagination     : {
+				currentPage  : 1,
+				totalPages   : undefined,
+				pageLimit    : 20,
+				totalRecords : undefined
+			}
 		};
 
 		this.handleShowModal = this.handleShowModal.bind(this);
@@ -28,6 +37,10 @@ class Admin extends Component
 
 	componentDidMount()
 	{
+		if (this.props.userType !== 'teacher')
+		{
+			this.props.history.push('/home');
+		}
 		this.props.onGetUsers();
 	}
 
@@ -59,9 +72,51 @@ class Admin extends Component
 		this.props.onModalHidden();
 	}
 
+	onPageChanged = (data) =>
+	{
+		logger.debug(data);
+		this.setState(
+			{
+				pagination : {
+					...data,
+					currentPage : data.currentPage > 0 ? data.currentPage : 1
+				}
+			}
+		);
+	}
+
+	handleOnChange = (e) =>
+	{
+		this.setState({ [e.target.name]: e.target.value });
+	}
+
 	render()
 	{
-		const { users, editUser } = this.state;
+		const { editUser, userTypeFilter, usersFilter } = this.state;
+
+		let { users } = this.state;
+
+		if (userTypeFilter)
+		{
+			users = users.filter((u) =>
+			{
+				return (u.userType || '').includes(userTypeFilter);
+			});
+		}
+
+		if (usersFilter)
+		{
+			users = users.filter((u) =>
+			{
+				return (u.name || '').includes(usersFilter) ||
+					(u.email || '').includes(usersFilter) ||
+					(u.admissionNumber || '').includes(usersFilter);
+			});
+		}
+
+		const { currentPage, pageLimit } = this.state.pagination;
+		const offset = (currentPage - 1) * pageLimit;
+		const currentUsers = users.slice(offset, offset + pageLimit);
 
 		return (
 			<div data-component='Admin'>
@@ -79,16 +134,31 @@ class Admin extends Component
 					<div className='users-view'>
 						<div className='users-filter'>
 							<label htmlFor='users-type'>Type</label>
-							<select id='users-type' name='users_type'>
-								<option value='all'>All</option>
-								<option value='students'>Students</option>
-								<option value='teachers'>Teachers</option>
+							<select
+								id='users-type'
+								name='userTypeFilter'
+								onChange={this.handleOnChange}
+							>
+								<option value=''>All</option>
+								<option value='student'>Students</option>
+								<option value='teacher'>Teachers</option>
 							</select>
+							<span className='search-element'>
+								<label htmlFor='users-filter'>Search</label>
+								<input
+									id='users-filter'
+									name='usersFilter'
+									placeholder='Search'
+									value={this.state.usersFilter}
+									onChange={this.handleOnChange}
+								/>
+							</span>
 						</div>
 						<div className='users-table'>
 							<table>
 								<thead>
 									<tr>
+										<th>S/N</th>
 										<th>Name</th>
 										<th>Type</th>
 										<th>Email</th>
@@ -98,10 +168,11 @@ class Admin extends Component
 								</thead>
 								<tbody>
 									{
-										users.map((user, index) =>
+										currentUsers.map((user, index) =>
 										{
 											return (
 												<tr key={`u-${index}`}>
+													<td>{ index + offset + 1 }</td>
 													<td>{ user.name }</td>
 													<td>{ user.userType}</td>
 													<td>{ user.email }</td>
@@ -116,6 +187,16 @@ class Admin extends Component
 								</tbody>
 							</table>
 						</div>
+						{
+							users.length && (
+								<Pagination
+									totalRecords={users.length}
+									pageLimit={20}
+									pageNeighbours={2}
+									handlePageChanged={this.onPageChanged}
+								/>
+							)
+						}
 					</div>
 				</div>
 				{ editUser &&
