@@ -65,11 +65,19 @@ class Home extends Component
 	render()
 	{
 		const { rooms } = this.state;
-		const { userId, userType } = this.props;
+		const { userId, userType, userRole } = this.props;
 
 		return (
 			<div data-component='Home'>
 				<div className='room-logout-wrapper'>
+					{userRole === 'admin' && <div className='room-logout'>
+						<Link
+							className='link'
+							to='/admin'
+						>
+							Admin
+						</Link>
+					</div>}
 					<div className='room-logout'>
 						<Link
 							className='link'
@@ -131,13 +139,15 @@ Home.propTypes =
 	userId      : PropTypes.string.isRequired,
 	history     : PropTypes.any.isRequired,
 	roomsGetAll : PropTypes.func.isRequired,
-	userType    : PropTypes.string.isRequired
+	userType    : PropTypes.string.isRequired,
+	userRole    : PropTypes.string
 };
 
 const mapStateToProps = (state) => ({
 	rooms    : state.rooms,
 	userId  	: (state.auth.user || {}).id,
-	userType : (state.auth.user || {}).userType
+	userType : (state.auth.user || {}).userType,
+	userRole : (state.auth.user || {}).role
 });
 
 export default connect(
