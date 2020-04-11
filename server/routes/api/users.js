@@ -105,10 +105,8 @@ router.post('/login', (req, res) =>
 	const email = req.body.email;
 	const admissionNumber = req.body.admissionNumber;
 	const password = req.body.password;
+
 	// Find user by email
-
-	logger.debug(`Admin no ${admissionNumber}`);
-
 	User.findOne({ $or :
 		[
 			{ $and: [ { email }, { userType: 'teacher' } ] },
