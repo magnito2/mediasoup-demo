@@ -1,11 +1,15 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { updateUser, deleteUser, modalHidden } from '../../redux/adminActions';
+import { clearError, clearErrors } from '../../redux/authActions';
 import classnames from 'classnames';
 import PropTypes from 'prop-types';
 
 import Logger from '../../Logger';
 const logger = new Logger('Admin-Edit');
+
+import deepEqual from 'deep-equal-x';
+import { isEmpty } from '../../utils';
 
 class EditModal extends Component
 {
@@ -17,8 +21,10 @@ class EditModal extends Component
 			name            : this.props.user.name,
 			admissionNumber : this.props.user.admissionNumber,
 			email           : this.props.user.email,
-			userType       	: this.props.user.userType,
-			showModal       : this.props.showModal
+			userType       	: this.props.user.userType || 'student',
+			active          : this.props.user.active,
+			showModal       : this.props.showModal,
+			errors          : {}
 		};
 
 		this.handleOnChange = this.handleOnChange.bind(this);
@@ -36,13 +42,20 @@ class EditModal extends Component
 
 	handleOnChange(e)
 	{
-		this.setState({ [e.target.name]: e.target.value });
-		if (e.target.name === 'userType')
+		if (e.target.type !== 'checkbox')
 		{
-			if (e.target.value === 'teacher')
+			this.setState({ [e.target.name]: e.target.value });
+			if (e.target.name === 'userType')
 			{
-				this.setState({ admissionNumber: '' });
+				if (e.target.value === 'teacher')
+				{
+					this.setState({ admissionNumber: '' });
+				}
 			}
+		}
+		else
+		{
+			this.setState({ [e.target.name]: event.target.checked });
 		}
 	}
 	handleOnDelete(e)
@@ -66,6 +79,7 @@ class EditModal extends Component
 			name            : this.state.name,
 			admissionNumber : this.state.admissionNumber,
 			userType        : this.state.userType,
+			active          : this.state.active,
 			id              : userId
 		};
 
@@ -87,6 +101,7 @@ class EditModal extends Component
 	{
 		document.removeEventListener('mousedown', this.handleOnClick, false);
 		this.props.onModalHidden();
+		this.props.onClearErrors();
 	}
 
 	componentDidMount()
@@ -94,8 +109,20 @@ class EditModal extends Component
 		document.addEventListener('mousedown', this.handleOnClick, false);
 	}
 
+	static getDerivedStateFromProps(props, state)
+	{
+		if (props.errors && !isEmpty(props.errors) && !deepEqual(props.errors, state.errors))
+		{
+			return {
+				errors : props.errors
+			};
+		}
+	}
+
 	render()
 	{
+		const { errors } = this.state;
+
 		return (
 			<div className={classnames('modal', this.state.showModal ? 'show' : '')}>
 				<span className='close' onClick={this.handleHideModal}>&times;</span>
@@ -112,15 +139,29 @@ class EditModal extends Component
 							placeholder='name'
 							value={this.state.name}
 							onChange={this.handleOnChange}
+							className={classnames('', {
+								invalid : errors.name
+							})}
 						/>
+						<span className='red-text'>
+							{errors.name}
+						</span>
 						{this.state.userType === 'student' &&
-							<input
-								type='text'
-								name='admissionNumber'
-								placeholder='Admission Number'
-								value={this.state.admissionNumber}
-								onChange={this.handleOnChange}
-							/>
+							<>
+								<input
+									type='text'
+									name='admissionNumber'
+									placeholder='Admission Number'
+									value={this.state.admissionNumber}
+									onChange={this.handleOnChange}
+									className={classnames('', {
+										invalid : errors.admissionNumber
+									})}
+								/>
+								<span className='red-text'>
+									{errors.admissionNumber}
+								</span>
+							</>
 						}
 						<input
 							type='email'
@@ -128,7 +169,22 @@ class EditModal extends Component
 							placeholder={`Email ${this.state.userType === 'student' ? ' *Optional' : ''}`}
 							value={this.state.email}
 							onChange={this.handleOnChange}
+							className={classnames('', {
+								invalid : errors.email
+							})}
 						/>
+						<span className='red-text'>
+							{errors.email}
+						</span>
+						<label>
+							<input
+								type='checkbox'
+								name='active'
+								checked={this.state.active}
+								onChange={this.handleOnChange}
+							/>
+							<span>Account Status {this.state.active ? 'ACTIVE' : 'INACTIVE'}</span>
+						</label>
 						<button type='submit'>Submit</button>
 					</form>
 					<button name='delete' className='delete-button' onClick={this.handleOnDelete}>Delete</button>
@@ -145,8 +201,15 @@ EditModal.propTypes =
 	hideModal     : PropTypes.func.isRequired,
 	onUpdateUser  : PropTypes.func.isRequired,
 	onDeleteUser  : PropTypes.func.isRequired,
-	onModalHidden : PropTypes.func.isRequired
+	onModalHidden : PropTypes.func.isRequired,
+	errors        : PropTypes.object,
+	onClearError  : PropTypes.func,
+	onClearErrors : PropTypes.func
 };
+
+const mapStateToProps = (state) => ({
+	errors : state.errors
+});
 
 const mapDispatchToProps = (dispatch) =>
 {
@@ -162,11 +225,19 @@ const mapDispatchToProps = (dispatch) =>
 		onModalHidden : () =>
 		{
 			dispatch(modalHidden());
+		},
+		onClearError : (errorKey) =>
+		{
+			dispatch(clearError(errorKey));
+		},
+		onClearErrors : () =>
+		{
+			dispatch(clearErrors());
 		}
 	};
 };
 
 export default connect(
-	null,
+	mapStateToProps,
 	mapDispatchToProps
 )(EditModal);
