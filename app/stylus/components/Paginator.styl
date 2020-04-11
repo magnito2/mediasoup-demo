@@ -1,0 +1,51 @@
+[data-component='Paginator'] {
+  position: relative;
+  float: center;
+  min-width: 33%;
+
+  > .pagination {
+
+    margin: 1%;
+
+    & li{
+      list-style-position:inside;
+      display: inline-block;
+      margin: 1%;
+
+      & a {
+
+        &:link {
+          text-decoration: none;
+        }
+
+        &:link, &:visited {
+          background-color: #355982;
+          color: white;
+          padding: 25%;
+          text-align: center;
+          text-decoration: none;
+          display: inline-block;
+          min-width: 20px;
+          border-radius: 33%;
+        }
+
+        &:hover, &:active {
+          background-color: #4479b5;
+        }
+
+      }
+    }
+  }
+
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  border: 0;
+}
