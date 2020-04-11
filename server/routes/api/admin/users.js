@@ -10,9 +10,11 @@ const Logger = require('../../../lib/Logger');
 
 const logger = new Logger('admin-users-route');
 
+const validateEditUser = require('../../../validation/editUsers');
 // @route get api/admin/users
 // @desc get all users
 // @access Public
+
 router.get('/', (req, res) =>
 {
 
@@ -25,7 +27,8 @@ router.get('/', (req, res) =>
 				name            : user.name,
 				userType        : user.userType,
 				email           : user.email,
-				admissionNumber : user.admissionNumber
+				admissionNumber : user.admissionNumber,
+				active          : user.active
 			};
 		});
 
@@ -38,6 +41,13 @@ router.get('/', (req, res) =>
 // @access Public
 router.put('/', (req, res) =>
 {
+	const { errors, isValid } = validateEditUser(req.body);
+
+	if (!isValid)
+	{
+		return res.status(400).json(errors);
+	}
+
 	const { id } = req.body;
 
 	if (!id || !id.match(/^[0-9a-fA-F]{24}$/))
@@ -47,29 +57,41 @@ router.put('/', (req, res) =>
 
 	logger.debug(req.body);
 
-	User.findOneAndUpdate({ _id: id },
-		{
-			name            : req.body.name,
-			email           : req.body.email,
-			admissionNumber : req.body.admissionNumber,
-			userType        : req.body.userType
-		}, { new: true })
-		.then((user) =>
-		{
-			res.json({
-				name            : user.name,
-				email           : user.email,
-				admissionNumber : user.admissionNumber,
-				userType        : user.userType,
-				id              : user.id
-			});
-		})
-		. catch((error) =>
-		{
-			logger.error(error);
+	User.init().then(() =>
+	{
+		User.findOneAndUpdate({ _id: id },
+			{
+				name            : req.body.name,
+				email           : req.body.email,
+				admissionNumber : req.body.admissionNumber,
+				userType        : req.body.userType,
+				active          : req.body.active
+			}, { new: true })
+			.then((user) =>
+			{
+				res.json({
+					name            : user.name,
+					email           : user.email,
+					admissionNumber : user.admissionNumber,
+					userType        : user.userType,
+					id              : user.id,
+					active          : user.active
+				});
+			})
+			. catch((error) =>
+			{
+				logger.error(error);
 
-			return res.status(400).json({ error: error.message });
-		});
+				const field = error.message.match(/index: (.*?)_/)[1];
+
+				if (field && error.message.includes('duplicate key error'))
+				{
+					return res.status(400).json({ [field]: `${field} Already taken` });
+				}
+
+				return res.status(400).json({ generalError: 'Server Error!, report to admin' });
+			});
+	});
 });
 
 // @route delete api/admin/users
