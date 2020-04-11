@@ -87,7 +87,14 @@ class Admin extends Component
 
 	handleOnChange = (e) =>
 	{
-		this.setState({ [e.target.name]: e.target.value });
+		if (event.target.name === 'usersFilter')
+		{
+			this.setState({ [e.target.name]: e.target.value.toLowerCase() });
+		}
+		else
+		{
+			this.setState({ [e.target.name]: e.target.value });
+		}
 	}
 
 	render()
@@ -108,8 +115,8 @@ class Admin extends Component
 		{
 			users = users.filter((u) =>
 			{
-				return (u.name || '').includes(usersFilter) ||
-					(u.email || '').includes(usersFilter) ||
+				return (u.name || '').toLowerCase().includes(usersFilter) ||
+					(u.email || '').toLowerCase().includes(usersFilter) ||
 					(u.admissionNumber || '').includes(usersFilter);
 			});
 		}
@@ -120,6 +127,24 @@ class Admin extends Component
 
 		return (
 			<div data-component='Admin'>
+				<div className='room-logout-wrapper'>
+					<div className='room-logout'>
+						<Link
+							className='link'
+							to='/home'
+						>
+							Home
+						</Link>
+					</div>
+					<div className='room-logout'>
+						<Link
+							className='link'
+							to='/logout'
+						>
+							Logout
+						</Link>
+					</div>
+				</div>
 				<div className='navigation'>
 					<div className='menu' id='navigation'>
 						<ul>
@@ -178,7 +203,10 @@ class Admin extends Component
 													<td>{ user.email }</td>
 													<td>{ user.admissionNumber }</td>
 													<td>
-														<button onClick={() => this.handleShowModal(user)}>Edit</button>
+														<button
+															className={user.active ? 'active' : 'inactive'}
+															onClick={() => this.handleShowModal(user)}
+														>Edit</button>
 													</td>
 												</tr>
 											);
