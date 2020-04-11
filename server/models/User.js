@@ -14,7 +14,8 @@ const UserSchema = new Schema({
 	},
 	admissionNumber : {
 		type     : String,
-		required : false
+		required : false,
+		unique   : true
 	},
 	userType : {
 		type     : String,
@@ -22,7 +23,8 @@ const UserSchema = new Schema({
 	},
 	email : {
 		type     : String,
-		required : false
+		required : false,
+		unique   : true
 	},
 	password : {
 		type     : String,
