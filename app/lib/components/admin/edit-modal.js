@@ -48,7 +48,7 @@ class EditModal extends Component
 	handleOnDelete(e)
 	{
 		e.preventDefault();
-		const accept = confirm('Do you want to delete?');
+		const accept = confirm(`Do you want to delete ${this.state.name}?`);
 
 		if (accept)
 		{
