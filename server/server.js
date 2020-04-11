@@ -353,14 +353,17 @@ async function createExpressApp()
 	);
 
 	// Passport middleware
-	// expressApp.use(passport.initialize());
+	expressApp.use(passport.initialize());
 	// Passport config
-	// require('./middleware/passport')(passport);
+	require('./middleware/passport')(passport);
 	// Routes
+
+	const authorize = require('./middleware/authorize')(passport);
+
 	expressApp.use('/api/users', users);
 
 	// Admin, not yet locked down but will be
-	expressApp.use('/api/admin/users', adminUsersRoute);
+	expressApp.use('/api/admin/users', authorize('admin'), adminUsersRoute);
 
 	expressApp.get('/api/rooms', (req, res) =>
 	{
