@@ -126,6 +126,12 @@ router.post('/login', (req, res) =>
 				return res.status(404).json({ admissionNumbernotfound: 'Admission Number not found' });
 			}
 		}
+
+		// Check user account is activated
+		if (!user.active)
+		{
+			return res.status(404).json({ generalError: `Hi ${user.name}, Your account has not been activated, contact your teacher or admin` });
+		}
 		// Check password
 		bcrypt.compare(password, user.password).then((isMatch) =>
 		{
@@ -136,7 +142,8 @@ router.post('/login', (req, res) =>
 				const payload = {
 					id       : user.id,
 					name     : user.name,
-					userType : user.userType
+					userType : user.userType,
+					role     : user.role
 				};
 				// Sign token
 
