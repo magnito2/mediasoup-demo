@@ -53,9 +53,9 @@ router.post('/register', (req, res) =>
 			logger.debug('Creating a new user, %o', req.body);
 			const newUser = new User({
 				name            : req.body.name,
-				admissionNumber : req.body.admissionNumber,
+				admissionNumber : req.body.admissionNumber || undefined,
 				userType        : req.body.userType,
-				email           : req.body.email,
+				email           : req.body.email || undefined,
 				password        : req.body.password
 			});
 			// Hash password before saving in database
@@ -79,9 +79,14 @@ router.post('/register', (req, res) =>
 						{
 							logger.error(errIn2);
 
-							return res.status(400).json({
-								generalError : errIn2.message
-							});
+							const field = errIn2.message.match(/index: (.*?)_/)[1];
+
+							if (field && errIn2.message.includes('duplicate key error'))
+							{
+								return res.status(400).json({ [field]: `${field} Already taken` });
+							}
+
+							return res.status(400).json({ generalError: 'Server Error!, report to admin' });
 						});
 				});
 			});

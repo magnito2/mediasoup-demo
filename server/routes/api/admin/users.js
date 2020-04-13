@@ -62,8 +62,8 @@ router.put('/', (req, res) =>
 		User.findOneAndUpdate({ _id: id },
 			{
 				name            : req.body.name,
-				email           : req.body.email,
-				admissionNumber : req.body.admissionNumber,
+				email           : req.body.email || `${req.body.name.toLowerCase().replace(/\s+/g, '')}${Math.ceil(Math.random()*10000)}@dummy.me`,
+				admissionNumber : req.body.admissionNumber || Math.ceil(Math.random() * 1000000),
 				userType        : req.body.userType,
 				active          : req.body.active
 			}, { new: true })
