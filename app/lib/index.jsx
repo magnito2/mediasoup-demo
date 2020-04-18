@@ -4,11 +4,9 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 
-// import { createLogger as createReduxLogger } from 'redux-logger';
 import randomString from 'random-string';
 import Logger from './Logger';
 import * as utils from './utils';
-import randomName from './randomName';
 import deviceInfo from './deviceInfo';
 import RoomClient from './RoomClient';
 import RoomContext from './RoomContext';
