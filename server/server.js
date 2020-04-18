@@ -581,7 +581,7 @@ async function getOrCreateRoom({
 		{
 			return null;
 		}
-		logger.info('creating a new Room [roomId:%s]', roomId);
+		logger.info('creating a new Room [roomId:%s] [forceVP9:%s]', roomId, forceVP9);
 
 		const mediasoupWorker = getMediasoupWorker();
 
