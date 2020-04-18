@@ -27,7 +27,6 @@ class Me extends React.Component
 			me,
 			audioProducer,
 			videoProducer,
-			faceDetection,
 			onSetStatsPeerId
 		} = this.props;
 
@@ -146,7 +145,6 @@ class Me extends React.Component
 					videoCodec={videoProducer ? videoProducer.codec : null}
 					audioScore={audioProducer ? audioProducer.score : null}
 					videoScore={videoProducer ? videoProducer.score : null}
-					faceDetection={faceDetection}
 					onChangeDisplayName={(displayName) =>
 					{
 						roomClient.changeDisplayName(displayName);
@@ -201,7 +199,6 @@ Me.propTypes =
 	me               : appPropTypes.Me.isRequired,
 	audioProducer    : appPropTypes.Producer,
 	videoProducer    : appPropTypes.Producer,
-	faceDetection    : PropTypes.bool.isRequired,
 	onSetStatsPeerId : PropTypes.func.isRequired
 };
 
