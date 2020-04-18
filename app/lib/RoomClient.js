@@ -340,6 +340,8 @@ export default class RoomClient
 								'I cannot consume from peer:%s as I am not admin, adminId :%s, myId : %s',
 								peerId, masterPeerId, me.id);
 
+							reject(403, 'I do not want to consume');
+
 							return;
 						}
 					}
@@ -789,7 +791,8 @@ export default class RoomClient
 						}));
 
 					// unmute unmuteMic
-					// this.unmuteMic();
+					this.unmuteMic();
+					this.changeWebcamResolution('vga');
 
 					break;
 				}
@@ -806,6 +809,12 @@ export default class RoomClient
 						{
 							text : 'Question Ended'
 						}));
+
+					if (store.getState().room.masterPeerId !== store.getState().me.id)
+					{
+						this.muteMic();
+						this.changeWebcamResolution('qvga');
+					}
 
 					break;
 				}
@@ -912,6 +921,12 @@ export default class RoomClient
 				this.disableMic()
 					.catch(() => {});
 			});
+
+			if (store.getState().room.masterPeerId !== store.getState().me.id)
+			{
+				logger.debug('All other peers start with their mics on mute');
+				this.muteMic();
+			}
 		}
 		catch (error)
 		{
@@ -1243,7 +1258,7 @@ export default class RoomClient
 			stateActions.setWebcamInProgress(false));
 	}
 
-	async changeWebcamResolution()
+	async changeWebcamResolution(resolution = undefined)
 	{
 		logger.debug('changeWebcamResolution()');
 
@@ -1252,19 +1267,26 @@ export default class RoomClient
 
 		try
 		{
-			switch (this._webcam.resolution)
+			if (resolution && [ 'qvga', 'vga', 'hd' ].includes(resolution))
 			{
-				case 'qvga':
-					this._webcam.resolution = 'vga';
-					break;
-				case 'vga':
-					this._webcam.resolution = 'hd';
-					break;
-				case 'hd':
-					this._webcam.resolution = 'qvga';
-					break;
-				default:
-					this._webcam.resolution = 'hd';
+				this._webcam.resolution = resolution;
+			}
+			else
+			{
+				switch (this._webcam.resolution)
+				{
+					case 'qvga':
+						this._webcam.resolution = 'vga';
+						break;
+					case 'vga':
+						this._webcam.resolution = 'hd';
+						break;
+					case 'hd':
+						this._webcam.resolution = 'qvga';
+						break;
+					default:
+						this._webcam.resolution = 'hd';
+				}
 			}
 
 			logger.debug('changeWebcamResolution() | calling getUserMedia()');
@@ -2382,6 +2404,12 @@ export default class RoomClient
 
 				const devicesCookie = cookiesManager.getDevices();
 
+				// set everyone's else video to qvga except master
+				if (store.getState().room.masterPeerId !== store.getState().me.id)
+				{
+					this._webcam.resolution = 'qvga';
+				}
+
 				if (!devicesCookie || devicesCookie.webcamEnabled || this._externalVideo)
 					this.enableWebcam();
 
@@ -2654,11 +2682,31 @@ export default class RoomClient
 		}
 	}
 
+	// Allow for url to be reset to change roomId
 	async resetProtooUrl({ roomId, peerId, forceH264, forceVP9 })
 	{
 		if (roomId && peerId)
 		{
 			this._protooUrl = getProtooUrl({ roomId, peerId, forceH264, forceVP9 });
+		}
+	}
+
+	// master/teacher would want to end the class and dismiss everybody
+	async closeRoom()
+	{
+		try
+		{
+			await this._protoo.request('closeRoom');
+		}
+		catch (error)
+		{
+			logger.error('closeRoom() failed:%o', error);
+
+			store.dispatch(requestActions.notify(
+				{
+					type : 'error',
+					text : `Error closing room: ${error}`
+				}));
 		}
 	}
 }
