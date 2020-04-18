@@ -10,8 +10,8 @@ import {
 	CLEAR_ERRORS
 } from './types';
 
-import Logger from '../Logger';
-const logger = new Logger('Auth-Actions');
+// import Logger from '../Logger';
+// const logger = new Logger('Auth-Actions');
 
 // Set logged in user
 
@@ -28,7 +28,7 @@ export const registerUser = (userData, history) => (dispatch) =>
 {
 	axios
 		.post('/api/users/register', userData)
-		.then((res) =>
+		.then(() =>
 		{
 			history.push('/login');
 			dispatch({
@@ -37,12 +37,20 @@ export const registerUser = (userData, history) => (dispatch) =>
 		}) // re-direct to login on successful register
 		.catch((err) =>
 		{
-			logger.debug(err);
-
-			dispatch({
-				type    : GET_ERRORS,
-				payload : err.response.data
-			});
+			if (typeof err.response.data === 'string')
+			{
+				dispatch({
+					type    : GET_ERRORS,
+					payload : { generalError: 'Server Error!' }
+				});
+			}
+			else
+			{
+				dispatch({
+					type    : GET_ERRORS,
+					payload : err.response.data
+				});
+			}
 		}
 		);
 };
@@ -69,11 +77,22 @@ export const loginUser = (userData) => (dispatch) =>
 			location.reload();
 		})
 		.catch((err) =>
-			dispatch({
-				type    : GET_ERRORS,
-				payload : err.response.data
-			})
-		);
+		{
+			if (typeof err.response.data === 'string')
+			{
+				dispatch({
+					type    : GET_ERRORS,
+					payload : { generalError: 'Server Error!' }
+				});
+			}
+			else
+			{
+				dispatch({
+					type    : GET_ERRORS,
+					payload : err.response.data
+				});
+			}
+		});
 };
 
 // User loading
