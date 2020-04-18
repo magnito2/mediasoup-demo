@@ -6,10 +6,6 @@ import { withRoomContext } from '../RoomContext';
 import * as stateActions from '../redux/stateActions';
 import PeerView from './PeerView';
 
-import Logger from '../Logger';
-
-const logger = new Logger('Peer');
-
 const Peer = (props) =>
 {
 	const {
@@ -18,7 +14,6 @@ const Peer = (props) =>
 		audioConsumer,
 		videoConsumer,
 		audioMuted,
-		faceDetection,
 		onSetStatsPeerId,
 		question,
 		myQuestion
@@ -78,7 +73,6 @@ const Peer = (props) =>
 				videoCodec={videoConsumer ? videoConsumer.codec : null}
 				audioScore={audioConsumer ? audioConsumer.score : null}
 				videoScore={videoConsumer ? videoConsumer.score : null}
-				faceDetection={faceDetection}
 				onChangeVideoPreferredLayers={(spatialLayer, temporalLayer) =>
 				{
 					roomClient.setConsumerPreferredLayers(
@@ -123,7 +117,6 @@ Peer.propTypes =
 	audioConsumer    : appPropTypes.Consumer,
 	videoConsumer    : appPropTypes.Consumer,
 	audioMuted       : PropTypes.bool,
-	faceDetection    : PropTypes.bool.isRequired,
 	onSetStatsPeerId : PropTypes.func.isRequired,
 	question         : PropTypes.any.isRequired,
 	myQuestion      	: PropTypes.any
@@ -154,8 +147,7 @@ const mapStateToProps = (state, { id }) =>
 		peer,
 		audioConsumer,
 		videoConsumer,
-		audioMuted    : me.audioMuted,
-		faceDetection : state.room.faceDetection,
+		audioMuted : me.audioMuted,
 		question,
 		myQuestion
 	};
