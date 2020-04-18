@@ -5,7 +5,6 @@ import classnames from 'classnames';
 import Spinner from 'react-spinner';
 import clipboardCopy from 'clipboard-copy';
 import hark from 'hark';
-import * as faceapi from 'face-api.js';
 import Logger from '../Logger';
 import * as appPropTypes from './appPropTypes';
 import EditableInput from './EditableInput';
@@ -13,12 +12,6 @@ import EditableInput from './EditableInput';
 import { isEmpty } from '../utils';
 
 const logger = new Logger('PeerView');
-
-const tinyFaceDetectorOptions = new faceapi.TinyFaceDetectorOptions(
-	{
-		inputSize      : 160,
-		scoreThreshold : 0.5
-	});
 
 export default class PeerView extends React.Component
 {
@@ -91,8 +84,7 @@ export default class PeerView extends React.Component
 			onRejectQuestion,
 			onEndQuestion,
 			question,
-			myQuestion,
-			inDevelopment
+			myQuestion
 		} = this.props;
 
 		const {
@@ -115,7 +107,7 @@ export default class PeerView extends React.Component
 							delayShow={100}
 							delayHide={50}
 						/>
-						{inDevelopment && <>
+						{window.SHOW_INFO && <>
 							<div
 								className={classnames('icon', 'info', { on: showInfo })}
 								onClick={() => this.setState({ showInfo: !showInfo })}
@@ -524,7 +516,9 @@ export default class PeerView extends React.Component
 					<div className={classnames('bar', `level${audioVolume}`)} />
 				</div>
 
-				<If condition={videoVisible && videoScore < 5}>
+				<If condition={(videoVisible && !isMe && (videoScore || {}).score < 5) ||
+					 (videoVisible && videoMultiLayer && consumerCurrentSpatialLayer === null)}
+				>
 					<div className='spinner-container'>
 						<Spinner />
 					</div>
@@ -590,7 +584,6 @@ export default class PeerView extends React.Component
 
 	_setTracks(audioTrack, videoTrack)
 	{
-		const { faceDetection } = this.props;
 
 		if (this._audioTrack === audioTrack && this._videoTrack === videoTrack)
 			return;
@@ -602,9 +595,6 @@ export default class PeerView extends React.Component
 			this._hark.stop();
 
 		this._stopVideoResolution();
-
-		if (faceDetection)
-			this._stopFaceDetection();
 
 		const { audioElem, videoElem } = this.refs;
 
@@ -648,9 +638,6 @@ export default class PeerView extends React.Component
 				.catch((error) => logger.warn('videoElem.play() failed:%o', error));
 
 			this._startVideoResolution();
-
-			if (faceDetection)
-				this._startFaceDetection();
 		}
 		else
 		{
@@ -713,62 +700,6 @@ export default class PeerView extends React.Component
 				videoResolutionWidth  : null,
 				videoResolutionHeight : null
 			});
-	}
-
-	_startFaceDetection()
-	{
-		const { videoElem, canvas } = this.refs;
-
-		const step = async () =>
-		{
-			// NOTE: Somehow this is critical. Otherwise the Promise returned by
-			// faceapi.detectSingleFace() never resolves or rejects.
-			if (!this._videoTrack || videoElem.readyState < 2)
-			{
-				this._faceDetectionRequestAnimationFrame = requestAnimationFrame(step);
-
-				return;
-			}
-
-			const detection =
-				await faceapi.detectSingleFace(videoElem, tinyFaceDetectorOptions);
-
-			if (detection)
-			{
-				const width = videoElem.offsetWidth;
-				const height = videoElem.offsetHeight;
-
-				canvas.width = width;
-				canvas.height = height;
-
-				// const resizedDetection = detection.forSize(width, height);
-				const resizedDetections =
-					faceapi.resizeResults(detection, { width, height });
-
-				faceapi.draw.drawDetections(canvas, resizedDetections);
-			}
-			else
-			{
-				// Trick to hide the canvas rectangle.
-				canvas.width = 0;
-				canvas.height = 0;
-			}
-
-			this._faceDetectionRequestAnimationFrame =
-				requestAnimationFrame(() => setTimeout(step, 100));
-		};
-
-		step();
-	}
-
-	_stopFaceDetection()
-	{
-		cancelAnimationFrame(this._faceDetectionRequestAnimationFrame);
-
-		const { canvas } = this.refs;
-
-		canvas.width = 0;
-		canvas.height = 0;
 	}
 
 	_printProducerScore(id, score)
@@ -843,7 +774,6 @@ PeerView.propTypes =
 	videoCodec                     : PropTypes.string,
 	audioScore                     : PropTypes.any,
 	videoScore                     : PropTypes.any,
-	faceDetection                  : PropTypes.bool.isRequired,
 	onChangeDisplayName            : PropTypes.func,
 	onChangeMaxSendingSpatialLayer : PropTypes.func,
 	onChangeVideoPreferredLayers   : PropTypes.func,
@@ -855,6 +785,5 @@ PeerView.propTypes =
 	onRejectQuestion              	: PropTypes.func.isRequired,
 	onEndQuestion                 	: PropTypes.func.isRequired,
 	question                       : PropTypes.any,
-	myQuestion                    	: PropTypes.any,
-	inDevelopment                  : PropTypes.bool
+	myQuestion                    	: PropTypes.any
 };
