@@ -871,7 +871,8 @@ class Room extends EventEmitter
 						{
 							id          : peer.id,
 							displayName : peer.data.displayName,
-							device      : peer.data.device
+							device      : peer.data.device,
+							isMaster    : peer.id === this._masterPeerId
 						})
 						.catch(() => {});
 				}
@@ -1039,12 +1040,27 @@ class Room extends EventEmitter
 
 				accept({ id: producer.id });
 
-				// Optimization: Create a server-side Consumer for each Peer.
-				for (const otherPeer of this._getJoinedPeers({ excludePeer: peer }))
+				// Changes: We want everyone to consume only from Master, if not,
+				// only master gets to consumer you
+				if (peer.id === this._masterPeerId)
 				{
+					for (const otherPeer of this._getJoinedPeers({ excludePeer: peer }))
+					{
+						this._createConsumer(
+							{
+								consumerPeer : otherPeer,
+								producerPeer : peer,
+								producer
+							});
+					}
+				}
+				else
+				{
+					const masterPeer = this._protooRoom.getPeer(this._masterPeerId);
+
 					this._createConsumer(
 						{
-							consumerPeer : otherPeer,
+							consumerPeer : masterPeer,
 							producerPeer : peer,
 							producer
 						});
@@ -1576,6 +1592,31 @@ class Room extends EventEmitter
 				break;
 			}
 
+			case 'closeRoom':
+			{
+				if (peer.id !== this._masterPeerId)
+				{
+					reject(403, 'Sorry, you can\'t do that!!, you didn\'t create the classroom');
+					break;
+				}
+
+				accept();
+				// Notify the new Peer to all other Peers.
+				for (const otherPeer of this._getJoinedPeers())
+				{
+					otherPeer.notify(
+						'generalNotification',
+						{
+							type : 'error',
+							text : 'Classroom has been Ended!!, bye Everyone!!'
+						})
+						.catch(() => {});
+					otherPeer.close();
+				}
+				// this.close();
+				break;
+			}
+
 			default:
 			{
 				logger.error('unknown request.method "%s"', request.method);
@@ -1716,14 +1757,6 @@ class Room extends EventEmitter
 				if (!consumer.paused && !consumer.producerPaused)
 				{
 					logger.info('possible bandwidth problems experienced');
-
-					consumerPeer.notify(
-						'generalNotification',
-						{
-							type : 'error',
-							text : 'A possible problem with the bandwidth. check your connection'
-						})
-						.catch(() => {});
 				}
 				else
 				{
