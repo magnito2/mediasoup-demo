@@ -119,18 +119,12 @@ async function run()
 		displayNameSet = true;
 	}
 	// Otherwise check if user is logged in with a username
-	else if (store.getState().auth && store.getState().auth.user)
-	{
-		displayNameSet = true;
-		displayName = store.getState().auth.user.name;
-		peerId = store.getState().auth.user.id;
-
-	}
-	// Otherwise pick a random name and mark as "not set".
 	else
 	{
-		displayNameSet = false;
-		displayName = randomName();
+		displayNameSet = true;
+		displayName = (store.getState().auth.user || {}).name;
+		peerId = (store.getState().auth.user || {}).id;
+
 	}
 
 	// Get current device info.
