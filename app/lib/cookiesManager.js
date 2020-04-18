@@ -1,7 +1,7 @@
 import jsCookie from 'js-cookie';
 
-const USER_COOKIE = 'mediasoup-demo.user';
-const DEVICES_COOKIE = 'mediasoup-demo.devices';
+const USER_COOKIE = 'technology-quest.user';
+const DEVICES_COOKIE = 'technology-quest.devices';
 
 export function getUser()
 {
