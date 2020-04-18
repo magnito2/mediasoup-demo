@@ -27,7 +27,6 @@
     "js-cookie": "^2.2.1",
     "jwt-decode": "^2.2.0",
     "mediasoup-client": "github:versatica/mediasoup-client#v3",
-    "pokemon": "^2.0.2",
     "prop-types": "^15.7.2",
     "protoo-client": "^4.0.3",
     "random-string": "^0.2.0",
