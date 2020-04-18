@@ -129,6 +129,9 @@ class EditModal extends Component
 				<div className='modal-content' ref={this.node}>
 					<h2>Edit</h2>
 					<form className='edit-form' noValidate onSubmit={this.handleOnSubmit}>
+						<span className='red-text'>
+							{errors.generalError}
+						</span>
 						<select name='userType' value={this.state.userType} onChange={this.handleOnChange}>
 							<option value='teacher'>Teacher</option>
 							<option value='student'>Student</option>
