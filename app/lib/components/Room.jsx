@@ -77,6 +77,29 @@ class Room extends React.Component
 					</div>
 
 					<div className='room-logout-wrapper'>
+						{ room.masterPeerId === me.id &&
+							<div className='room-logout'>
+								<a href='#'
+									className='link'
+									onClick={(e) =>
+									{
+										e.preventDefault();
+										roomClient.closeRoom();
+									}
+									}
+								>
+									End Class
+								</a>
+							</div>
+						}
+						<div className='room-logout'>
+							<Link
+								className='link'
+								to='/home'
+							>
+								Home
+							</Link>
+						</div>
 						<div className='room-logout'>
 							<Link
 								className='link'
@@ -174,8 +197,14 @@ class Room extends React.Component
 			return;
 		}
 
-		roomClient.resetProtooUrl({ roomId, peerId }); // change to url to the new urls
+		// change to url to the new urls
+		roomClient.resetProtooUrl({ roomId, peerId, forceVP9: true });
 		roomClient.join(roomName);
+	}
+
+	componentWillUnmount()
+	{
+		this.props.roomClient.close();
 	}
 }
 
@@ -188,7 +217,8 @@ Room.propTypes =
 	onRoomLinkCopy  : PropTypes.func.isRequired,
 	location        : PropTypes.any,
 	history        	: PropTypes.any,
-	userId         	: PropTypes.string
+	userId         	: PropTypes.string,
+	isMaster       	: PropTypes.bool
 };
 
 const mapStateToProps = (state) =>
@@ -197,7 +227,8 @@ const mapStateToProps = (state) =>
 		room            : state.room,
 		me              : state.me,
 		amActiveSpeaker : state.me.id === state.room.activeSpeakerId,
-		userId         	: (state.auth.user || {}).id
+		userId         	: (state.auth.user || {}).id,
+		isMaster        : state.me.id === state.room.masterPeerId
 	};
 };
 
